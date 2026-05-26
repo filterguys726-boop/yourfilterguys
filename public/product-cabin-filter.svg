@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700" role="img" aria-labelledby="title desc">
+  <title id="title">Cabin air filter</title>
+  <desc id="desc">Stylized pleated cabin air filter with carbon layer.</desc>
+  <rect width="900" height="700" fill="#edf7f6"/>
+  <path d="M170 197c0-31 25-56 56-56h448c31 0 56 25 56 56v306c0 31-25 56-56 56H226c-31 0-56-25-56-56V197Z" fill="#fff" stroke="#0f766e" stroke-width="24"/>
+  <path d="M250 215h400v270H250z" fill="#d9f99d"/>
+  <path d="M278 215v270M334 215v270M390 215v270M446 215v270M502 215v270M558 215v270M614 215v270" stroke="#0f766e" stroke-width="18"/>
+  <path d="M250 272h400M250 350h400M250 428h400" stroke="#334155" stroke-width="20" opacity=".72"/>
+  <path d="M236 530h428" stroke="#0f766e" stroke-width="24" stroke-linecap="round"/>
+  <path d="M236 170h428" stroke="#0f766e" stroke-width="24" stroke-linecap="round"/>
+</svg>

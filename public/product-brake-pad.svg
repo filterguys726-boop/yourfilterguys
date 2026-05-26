@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700" role="img" aria-labelledby="title desc">
+  <title id="title">Ceramic brake pad</title>
+  <desc id="desc">Stylized pair of ceramic automotive brake pads.</desc>
+  <rect width="900" height="700" fill="#f1f5f9"/>
+  <path d="M232 160h190c37 0 66 33 61 69l-49 354c-4 29-29 51-59 51H194c-37 0-66-33-61-69l49-354c4-29 29-51 50-51Z" fill="#1f2937"/>
+  <path d="M284 222h130l-44 320H240l44-320Z" fill="#c2410c"/>
+  <circle cx="351" cy="293" r="32" fill="#f8fafc"/>
+  <circle cx="309" cy="468" r="32" fill="#f8fafc"/>
+  <path d="M480 160h190c37 0 66 33 61 69l-49 354c-4 29-29 51-59 51H442c-37 0-66-33-61-69l49-354c4-29 29-51 50-51Z" fill="#0f172a"/>
+  <path d="M532 222h130l-44 320H488l44-320Z" fill="#2563eb"/>
+  <circle cx="599" cy="293" r="32" fill="#f8fafc"/>
+  <circle cx="557" cy="468" r="32" fill="#f8fafc"/>
+</svg>
