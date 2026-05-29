@@ -1,16 +1,8 @@
 import Link from "next/link";
-import { CheckCircle2, PackageSearch } from "lucide-react";
+import { CheckCircle2, Mail, PackageSearch, ShoppingBag } from "lucide-react";
 import { ClearCartOnMount } from "@/components/clear-cart-on-mount";
 
-type SuccessPageProps = {
-  searchParams?: Promise<{
-    session_id?: string;
-  }>;
-};
-
-export default async function CheckoutSuccessPage({ searchParams }: SuccessPageProps) {
-  const params = await searchParams;
-
+export default function CheckoutSuccessPage() {
   return (
     <div className="bg-paper">
       <ClearCartOnMount />
@@ -18,20 +10,39 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-teal-100 text-bay">
           <CheckCircle2 aria-hidden className="h-8 w-8" />
         </div>
-        <h1 className="mt-6 text-4xl font-black text-ink">Payment received</h1>
+        <h1 className="mt-6 text-4xl font-black text-ink">
+          Thanks, your order is confirmed.
+        </h1>
         <p className="mt-4 text-base leading-7 text-slate-600">
-          Stripe confirmed the checkout. The webhook creates the Supabase order,
-          records line items, and reduces inventory after the payment event.
+          We received your payment and are getting your order ready. A receipt
+          and order details will be sent to the email used at checkout.
         </p>
-        {params?.session_id ? (
-          <p className="mt-4 rounded-md bg-white p-3 text-xs font-semibold text-slate-500">
-            Session: {params.session_id}
-          </p>
-        ) : null}
+
+        <div className="mt-8 grid gap-3 text-left sm:grid-cols-2">
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <Mail aria-hidden className="h-5 w-5 text-electric" />
+            <h2 className="mt-3 text-base font-black text-ink">
+              Check your email
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Your receipt and order confirmation should arrive shortly.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <ShoppingBag aria-hidden className="h-5 w-5 text-shopred" />
+            <h2 className="mt-3 text-base font-black text-ink">
+              We&apos;ll prepare the order
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Shipping updates will appear in your account when available.
+            </p>
+          </div>
+        </div>
+
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link href="/account/orders" className="button-primary">
             <PackageSearch aria-hidden className="h-4 w-4" />
-            View orders
+            View order history
           </Link>
           <Link href="/products" className="button-secondary">
             Continue shopping
