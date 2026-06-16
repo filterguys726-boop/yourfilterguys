@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2, LogIn, Mail, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn, Mail, UserPlus } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useState } from "react";
 
@@ -27,6 +27,7 @@ function getSupabase() {
 export function AuthForm({ mode, nextUrl = "/account" }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -176,15 +177,29 @@ export function AuthForm({ mode, nextUrl = "/account" }: AuthFormProps) {
         </label>
         <label className="grid gap-2">
           <span className="label">Password</span>
-          <input
-            className="field"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            autoComplete={isSignup ? "new-password" : "current-password"}
-            required
-            minLength={8}
-          />
+          <span className="relative">
+            <input
+              className="field pr-12"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              type={showPassword ? "text" : "password"}
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              required
+              minLength={8}
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-ink focus-ring"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff aria-hidden className="h-4 w-4" />
+              ) : (
+                <Eye aria-hidden className="h-4 w-4" />
+              )}
+            </button>
+          </span>
         </label>
       </div>
 

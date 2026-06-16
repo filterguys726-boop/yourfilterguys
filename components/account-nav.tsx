@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ClipboardList, LayoutDashboard, UserRound } from "lucide-react";
+import { LogoutButton } from "@/components/logout-button";
 
 const items = [
   { href: "/account", label: "Dashboard", icon: LayoutDashboard },
@@ -20,6 +21,7 @@ export function AccountNav() {
           </Link>
         );
       })}
+      <LogoutButton />
     </nav>
   );
 }

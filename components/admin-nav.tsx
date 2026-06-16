@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Boxes, ClipboardList, LayoutDashboard, PackagePlus } from "lucide-react";
+import { LogoutButton } from "@/components/logout-button";
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ export function AdminNav() {
           </Link>
         );
       })}
+      <LogoutButton />
     </nav>
   );
 }
