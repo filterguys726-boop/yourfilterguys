@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { notFound } from "next/navigation";
 import { AdminGate } from "@/components/admin-gate";
 import { AdminErrorAlert } from "@/components/admin-error-alert";
@@ -73,34 +74,138 @@ export default async function AdminProductPage({
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
                 {product.variants.map((variant) => (
-                  <tr key={variant.id}>
-                    <td className="px-5 py-4 font-bold text-ink">{variant.name}</td>
-                    <td className="px-5 py-4">{variant.sku}</td>
-                    <td className="px-5 py-4">
-                      {formatMoney(variant.priceCents)}
-                    </td>
-                    <td className="px-5 py-4">{variant.stockQuantity}</td>
-                    <td className="px-5 py-4">
-                      <form action={adjustInventoryAction} className="flex gap-2">
-                        <input type="hidden" name="product_id" value={product.id} />
-                        <input type="hidden" name="variant_id" value={variant.id} />
-                        <input
-                          className="field w-24"
-                          name="quantity_delta"
-                          placeholder="+5"
-                          inputMode="numeric"
-                        />
-                        <input
-                          type="hidden"
-                          name="reason"
-                          value="admin_adjustment"
-                        />
-                        <button className="button-secondary px-3" type="submit">
-                          Save
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
+                  <Fragment key={variant.id}>
+                    <tr>
+                      <td className="px-5 py-4 font-bold text-ink">
+                        {variant.name}
+                      </td>
+                      <td className="px-5 py-4">{variant.sku}</td>
+                      <td className="px-5 py-4">
+                        {formatMoney(variant.priceCents)}
+                      </td>
+                      <td className="px-5 py-4">{variant.stockQuantity}</td>
+                      <td className="px-5 py-4">
+                        <form action={adjustInventoryAction} className="flex gap-2">
+                          <input type="hidden" name="product_id" value={product.id} />
+                          <input type="hidden" name="variant_id" value={variant.id} />
+                          <input
+                            className="field w-24"
+                            name="quantity_delta"
+                            placeholder="+5"
+                            inputMode="numeric"
+                          />
+                          <input
+                            type="hidden"
+                            name="reason"
+                            value="admin_adjustment"
+                          />
+                          <button className="button-secondary px-3" type="submit">
+                            Adjust
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                    <tr className="bg-slate-50/70">
+                      <td className="px-5 py-5" colSpan={5}>
+                        <form
+                          action={upsertVariantAction}
+                          className="grid gap-4 md:grid-cols-4"
+                        >
+                          <input type="hidden" name="product_id" value={product.id} />
+                          <input type="hidden" name="variant_id" value={variant.id} />
+                          <label className="grid gap-2">
+                            <span className="label">Variant name</span>
+                            <input
+                              className="field"
+                              name="name"
+                              defaultValue={variant.name}
+                              required
+                            />
+                          </label>
+                          <label className="grid gap-2">
+                            <span className="label">SKU</span>
+                            <input
+                              className="field"
+                              name="sku"
+                              defaultValue={variant.sku}
+                              required
+                            />
+                          </label>
+                          <label className="grid gap-2">
+                            <span className="label">Price</span>
+                            <input
+                              className="field"
+                              name="price"
+                              defaultValue={(variant.priceCents / 100).toFixed(2)}
+                              inputMode="decimal"
+                              required
+                            />
+                          </label>
+                          <label className="grid gap-2">
+                            <span className="label">Cost</span>
+                            <input
+                              className="field"
+                              name="cost"
+                              defaultValue={
+                                variant.costCents === null
+                                  ? ""
+                                  : (variant.costCents / 100).toFixed(2)
+                              }
+                              inputMode="decimal"
+                            />
+                          </label>
+                          <label className="grid gap-2">
+                            <span className="label">Stock</span>
+                            <input
+                              className="field"
+                              name="stock_quantity"
+                              defaultValue={variant.stockQuantity}
+                              inputMode="numeric"
+                            />
+                          </label>
+                          <label className="grid gap-2">
+                            <span className="label">Weight oz</span>
+                            <input
+                              className="field"
+                              name="weight_oz"
+                              defaultValue={variant.weightOz ?? ""}
+                              inputMode="numeric"
+                            />
+                          </label>
+                          <label className="grid gap-2">
+                            <span className="label">Dimensions</span>
+                            <input
+                              className="field"
+                              name="dimensions_in"
+                              defaultValue={variant.dimensionsIn ?? ""}
+                              placeholder="10 x 6 x 3"
+                            />
+                          </label>
+                          <div className="flex flex-wrap items-end gap-4">
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                              <input
+                                type="checkbox"
+                                name="backorder_allowed"
+                                defaultChecked={variant.backorderAllowed}
+                              />
+                              Backorder
+                            </label>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                              <input
+                                type="checkbox"
+                                name="active"
+                                defaultChecked={variant.active}
+                              />
+                              Active
+                            </label>
+                            <button type="submit" className="button-primary">
+                              Save variant
+                            </button>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
