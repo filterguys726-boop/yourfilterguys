@@ -32,8 +32,12 @@ export function ProductForm({
             className="field"
             name="slug"
             defaultValue={product?.slug ?? ""}
+            placeholder="cummins-fuel-shutoff-valve"
             required
           />
+          <span className="text-xs font-semibold text-slate-500">
+            Use URL words only, without a leading slash.
+          </span>
         </label>
         <label className="grid gap-2">
           <span className="label">Product SKU</span>

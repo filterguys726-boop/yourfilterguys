@@ -41,6 +41,15 @@ function textValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function normalizeSlug(value: string) {
+  return value
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function errorPath(path: string, error: unknown) {
   const message =
     error instanceof Error ? error.message : "The admin action could not be saved.";
@@ -101,7 +110,7 @@ export async function upsertProductAction(formData: FormData) {
     category_id: textValue(formData, "category_id"),
     sku: textValue(formData, "sku"),
     name: textValue(formData, "name"),
-    slug: textValue(formData, "slug"),
+    slug: normalizeSlug(textValue(formData, "slug")),
     brand: textValue(formData, "brand"),
     short_description: textValue(formData, "short_description"),
     description: textValue(formData, "description"),
