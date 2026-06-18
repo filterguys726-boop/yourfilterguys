@@ -1,10 +1,20 @@
 import { AdminGate } from "@/components/admin-gate";
+import { AdminErrorAlert } from "@/components/admin-error-alert";
 import { AdminNav } from "@/components/admin-nav";
 import { getAdminState } from "@/lib/admin";
 import { getCategories } from "@/lib/catalog";
 import { ProductForm } from "@/app/admin/products/product-form";
 
-export default async function NewProductPage() {
+type NewProductPageProps = {
+  searchParams?: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function NewProductPage({
+  searchParams
+}: NewProductPageProps) {
+  const params = await searchParams;
   const state = await getAdminState();
 
   if (!state.configured || !state.user || !state.isAdmin) {
@@ -25,6 +35,7 @@ export default async function NewProductPage() {
         </div>
       </section>
       <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+        <AdminErrorAlert message={params?.error} />
         <ProductForm categories={categories} />
       </section>
     </div>

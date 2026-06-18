@@ -22,7 +22,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const activeVariants = product.variants.filter((variant) => variant.active);
-  const lowestPrice = Math.min(...activeVariants.map((variant) => variant.priceCents));
+  const lowestPrice = activeVariants.length
+    ? Math.min(...activeVariants.map((variant) => variant.priceCents))
+    : null;
   const gallery = product.imageGallery?.length
     ? product.imageGallery
     : [{ url: product.imageUrl, alt: product.imageAlt }];
@@ -93,7 +95,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       Starting at
                     </p>
                     <p className="mt-1 text-3xl font-black text-ink">
-                      {formatMoney(lowestPrice)}
+                      {lowestPrice === null ? "Pending" : formatMoney(lowestPrice)}
                     </p>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -181,6 +183,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     </td>
                   </tr>
                 ))}
+                {!activeVariants.length ? (
+                  <tr>
+                    <td
+                      className="px-5 py-8 text-center text-slate-600"
+                      colSpan={6}
+                    >
+                      No active variants are available yet.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>

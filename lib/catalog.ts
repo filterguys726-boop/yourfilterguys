@@ -62,8 +62,8 @@ function mapProduct(row: ProductRow): CatalogProduct {
     category:
       category ??
       sampleCategories.find((item) => item.slug === "engine-filters")!,
-    imageUrl: row.image_url ?? "/product-oil-filter.svg",
-    imageAlt: row.image_alt ?? row.name,
+    imageUrl: row.image_url || "/product-oil-filter.svg",
+    imageAlt: row.image_alt || row.name,
     active: row.active,
     inventoryBehavior: row.inventory_behavior,
     shippingNotes: row.shipping_notes,

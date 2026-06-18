@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminGate } from "@/components/admin-gate";
+import { AdminErrorAlert } from "@/components/admin-error-alert";
 import { AdminNav } from "@/components/admin-nav";
 import { getAdminProduct } from "@/lib/admin";
 import { getCategories } from "@/lib/catalog";
@@ -15,10 +16,17 @@ type AdminProductPageProps = {
   params: Promise<{
     id: string;
   }>;
+  searchParams?: Promise<{
+    error?: string;
+  }>;
 };
 
-export default async function AdminProductPage({ params }: AdminProductPageProps) {
+export default async function AdminProductPage({
+  params,
+  searchParams
+}: AdminProductPageProps) {
   const { id } = await params;
+  const query = await searchParams;
   const [{ state, product }, categories] = await Promise.all([
     getAdminProduct(id),
     getCategories()
@@ -45,6 +53,7 @@ export default async function AdminProductPage({ params }: AdminProductPageProps
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:px-8">
+        <AdminErrorAlert message={query?.error} />
         <ProductForm categories={categories} product={product} />
 
         <section className="surface overflow-hidden">

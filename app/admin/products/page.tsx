@@ -46,31 +46,37 @@ export default async function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="px-5 py-4">
-                      <Link
-                        href={`/admin/products/${product.id}`}
-                        className="font-black text-electric"
-                      >
-                        {product.name}
-                      </Link>
-                      <p className="mt-1 text-xs text-slate-500">{product.sku}</p>
-                    </td>
-                    <td className="px-5 py-4">{product.category.name}</td>
-                    <td className="px-5 py-4">{product.variants.length}</td>
-                    <td className="px-5 py-4 font-black text-ink">
-                      {formatMoney(
-                        Math.min(
-                          ...product.variants.map((variant) => variant.priceCents)
-                        )
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
-                      {product.active ? "Active" : "Inactive"}
-                    </td>
-                  </tr>
-                ))}
+                {products.map((product) => {
+                  const startingPrice = product.variants.length
+                    ? Math.min(
+                        ...product.variants.map((variant) => variant.priceCents)
+                      )
+                    : null;
+
+                  return (
+                    <tr key={product.id}>
+                      <td className="px-5 py-4">
+                        <Link
+                          href={`/admin/products/${product.id}`}
+                          className="font-black text-electric"
+                        >
+                          {product.name}
+                        </Link>
+                        <p className="mt-1 text-xs text-slate-500">{product.sku}</p>
+                      </td>
+                      <td className="px-5 py-4">{product.category.name}</td>
+                      <td className="px-5 py-4">{product.variants.length}</td>
+                      <td className="px-5 py-4 font-black text-ink">
+                        {startingPrice === null
+                          ? "Pending"
+                          : formatMoney(startingPrice)}
+                      </td>
+                      <td className="px-5 py-4">
+                        {product.active ? "Active" : "Inactive"}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {!products.length ? (
                   <tr>
                     <td className="px-5 py-8 text-center text-slate-600" colSpan={5}>

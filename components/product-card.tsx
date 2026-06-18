@@ -9,11 +9,16 @@ function getLowestPrice(product: CatalogProduct) {
     .filter((variant) => variant.active)
     .map((variant) => variant.priceCents);
 
-  return Math.min(...prices);
+  return prices.length ? Math.min(...prices) : null;
 }
 
 function getInventoryLabel(product: CatalogProduct) {
   const activeVariants = product.variants.filter((variant) => variant.active);
+
+  if (!activeVariants.length) {
+    return "Setup needed";
+  }
+
   const hasStock = activeVariants.some((variant) => variant.stockQuantity > 0);
   const hasBackorder = activeVariants.some((variant) => variant.backorderAllowed);
 
@@ -29,6 +34,8 @@ function getInventoryLabel(product: CatalogProduct) {
 }
 
 export function ProductCard({ product }: { product: CatalogProduct }) {
+  const lowestPrice = getLowestPrice(product);
+
   return (
     <article className="surface flex h-full flex-col overflow-hidden">
       <Link href={`/products/${product.slug}`} className="block bg-white">
@@ -71,9 +78,9 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
           </div>
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-500">
-              From{" "}
+              {lowestPrice === null ? "Price" : "From"}{" "}
               <span className="text-lg font-black text-ink">
-                {formatMoney(getLowestPrice(product))}
+                {lowestPrice === null ? "pending" : formatMoney(lowestPrice)}
               </span>
             </p>
             <Link href={`/products/${product.slug}`} className="button-secondary px-3">
