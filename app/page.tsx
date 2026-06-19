@@ -17,6 +17,17 @@ export default async function HomePage() {
     getProducts()
   ]);
   const featured = products.slice(0, 3);
+  const brands = Array.from(
+    products.reduce((items, product) => {
+      const brand = product.brand.trim();
+      if (!brand) {
+        return items;
+      }
+
+      items.set(brand, (items.get(brand) ?? 0) + 1);
+      return items;
+    }, new Map<string, number>())
+  ).sort(([brandA], [brandB]) => brandA.localeCompare(brandB));
 
   return (
     <div>
@@ -152,6 +163,45 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {brands.length ? (
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-black uppercase text-bay">
+                  Shop by brand
+                </p>
+                <h2 className="mt-2 text-3xl font-black text-ink">
+                  Find parts by manufacturer
+                </h2>
+              </div>
+              <Link href="/products" className="button-secondary w-fit">
+                All brands
+                <ArrowRight aria-hidden className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {brands.map(([brandName, count]) => (
+                <Link
+                  key={brandName}
+                  href={`/products?q=${encodeURIComponent(brandName)}`}
+                  className="surface p-5 transition hover:-translate-y-0.5 hover:shadow-panel"
+                >
+                  <p className="text-xl font-black text-ink">{brandName}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {count} {count === 1 ? "active product" : "active products"}
+                  </p>
+                  <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-electric">
+                    Search brand
+                    <ArrowRight aria-hidden className="h-4 w-4" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="bg-white">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
