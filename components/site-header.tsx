@@ -10,7 +10,7 @@ import { brand } from "@/lib/brand";
 const links = [
   { href: "/products", label: "Products" },
   { href: "/category/engine-filters", label: "Engine filters" },
-  { href: "/category/brake-parts", label: "Brake parts" }
+  { href: "/category/service-kits", label: "Service kits" }
 ];
 
 export function SiteHeader() {

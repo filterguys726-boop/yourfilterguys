@@ -27,7 +27,7 @@ export default function AboutPage() {
           {
             icon: Wrench,
             title: "Service Essentials",
-            text: "The catalog focuses on filters, brake parts, and service components buyers regularly need."
+            text: "The catalog focuses on filters and service components buyers regularly need."
           },
           {
             icon: Truck,

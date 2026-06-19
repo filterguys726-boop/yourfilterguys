@@ -8,12 +8,6 @@ export const sampleCategories: Category[] = [
     description: "Fuel, oil, air, and cabin filters for popular U.S. vehicles."
   },
   {
-    id: "cat-brake-parts",
-    name: "Brake Parts",
-    slug: "brake-parts",
-    description: "Pads and service parts for common maintenance jobs."
-  },
-  {
     id: "cat-service-kits",
     name: "Service Kits",
     slug: "service-kits",
@@ -32,7 +26,7 @@ export const sampleProducts: CatalogProduct[] = [
       "Fuel filter insert kit with seals for Detroit DD13 and DD15 service.",
     description:
       "A Detroit DD13/DD15 fuel filter insert kit with included O-rings and service components. Verify OE number A4720921705 and vehicle fitment notes before purchase or installation.",
-    category: sampleCategories[2],
+    category: sampleCategories[1],
     imageUrl: "/detroit-dd13-dd15-fuel-filter-kit-a4720921705-1.png",
     imageAlt:
       "Detroit DD13/DD15 fuel filter kit A4720921705 with filter, box, seals, and insert",
@@ -311,69 +305,6 @@ export const sampleProducts: CatalogProduct[] = [
         engine: "3.5L V6",
         trim: "Base, F Sport",
         notes: "Verify filter direction arrow during install."
-      }
-    ]
-  },
-  {
-    id: "prod-brake-pad-bp905",
-    name: "Ceramic Front Brake Pad Set BP905",
-    slug: "ceramic-front-brake-pad-set-bp905",
-    sku: "TF-BP905",
-    brand: "StopLine",
-    shortDescription: "Low-dust ceramic front pads with hardware kit.",
-    description:
-      "A front axle ceramic brake pad set built for quiet operation, smooth pedal feel, and low visible dust on compatible compact SUVs.",
-    category: sampleCategories[1],
-    imageUrl: "/product-brake-pad.svg",
-    imageAlt: "Ceramic brake pad set",
-    active: true,
-    inventoryBehavior: "in_stock",
-    shippingNotes: "Ships as a front axle set with hardware.",
-    variants: [
-      {
-        id: "var-bp905-front",
-        productId: "prod-brake-pad-bp905",
-        name: "Front axle set",
-        sku: "TF-BP905-F",
-        priceCents: 6499,
-        costCents: 3125,
-        stockQuantity: 11,
-        backorderAllowed: false,
-        weightOz: 58,
-        dimensionsIn: "9 x 6 x 3",
-        active: true
-      }
-    ],
-    fitment: [
-      {
-        id: "fit-bp905-1",
-        productId: "prod-brake-pad-bp905",
-        year: 2020,
-        make: "Honda",
-        model: "CR-V",
-        engine: "1.5L Turbo",
-        trim: "EX, EX-L, Touring",
-        notes: "Front axle only. Excludes hybrid."
-      },
-      {
-        id: "fit-bp905-2",
-        productId: "prod-brake-pad-bp905",
-        year: 2021,
-        make: "Honda",
-        model: "CR-V",
-        engine: "2.0L Hybrid",
-        trim: "EX, EX-L",
-        notes: "Requires rotor diameter confirmation."
-      },
-      {
-        id: "fit-bp905-3",
-        productId: "prod-brake-pad-bp905",
-        year: 2022,
-        make: "Acura",
-        model: "RDX",
-        engine: "2.0L Turbo",
-        trim: "Base",
-        notes: "Fits front caliper code A1 only."
       }
     ]
   }
