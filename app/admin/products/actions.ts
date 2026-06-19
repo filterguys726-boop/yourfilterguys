@@ -152,6 +152,46 @@ export async function upsertProductAction(formData: FormData) {
   redirect(`/admin/products/${data.id}`);
 }
 
+export async function deleteProductAction(formData: FormData) {
+  const supabase = await assertAdmin();
+  const productId = textValue(formData, "product_id");
+  const confirmation = textValue(formData, "delete_confirmation");
+
+  if (confirmation !== "DELETE") {
+    redirect(
+      errorPath(
+        `/admin/products/${productId}`,
+        new Error("Type DELETE to confirm product deletion.")
+      )
+    );
+  }
+
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (productError) {
+    redirect(errorPath(`/admin/products/${productId}`, productError));
+  }
+
+  const { error } = await supabase.from("products").delete().eq("id", productId);
+
+  if (error) {
+    redirect(errorPath(`/admin/products/${productId}`, error));
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+
+  if (product?.slug) {
+    revalidatePath(`/products/${product.slug}`);
+  }
+
+  redirect("/admin/products");
+}
+
 export async function upsertVariantAction(formData: FormData) {
   const supabase = await assertAdmin();
   const productId = textValue(formData, "product_id");
