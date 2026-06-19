@@ -6,7 +6,8 @@ import {
   PackageCheck,
   Search,
   ShieldCheck,
-  Truck
+  Truck,
+  Wrench
 } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
@@ -80,7 +81,7 @@ export default async function HomePage() {
             </div>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/products" className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-black text-ink shadow-sm transition hover:bg-slate-100 focus-ring">
-                Shop filters
+                Find my part
                 <ArrowRight aria-hidden className="h-4 w-4" />
               </Link>
               <Link href="/category/service-kits" className="inline-flex items-center justify-center gap-2 rounded-md border border-white/25 bg-white/10 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/15 focus-ring">
@@ -127,45 +128,30 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-200 bg-paper">
+      <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-black uppercase text-electric">
-                Shop by category
-              </p>
+              <p className="text-sm font-black uppercase text-bay">Inventory</p>
               <h2 className="mt-2 text-3xl font-black text-ink">
-                Service parts organized for quick buying
+                Featured parts
               </h2>
             </div>
-            <Link href="/products" className="button-secondary w-fit">
-              All products
+            <Link href="/products" className="button-primary w-fit">
+              Shop catalog
               <ArrowRight aria-hidden className="h-4 w-4" />
             </Link>
           </div>
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/category/${category.slug}`}
-                className="surface p-5 transition hover:-translate-y-0.5 hover:shadow-panel"
-              >
-                <p className="text-xl font-black text-ink">{category.name}</p>
-                <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">
-                  {category.description}
-                </p>
-                <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-electric">
-                  Browse
-                  <ArrowRight aria-hidden className="h-4 w-4" />
-                </span>
-              </Link>
+          <div className="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {featured.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>
       </section>
 
       {brands.length ? (
-        <section className="border-b border-slate-200 bg-white">
+        <section className="border-b border-slate-200 bg-paper">
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -203,23 +189,97 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      <section className="bg-white">
+      <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-black uppercase text-bay">Inventory</p>
+              <p className="text-sm font-black uppercase text-electric">
+                Shop by category
+              </p>
               <h2 className="mt-2 text-3xl font-black text-ink">
-                Featured parts
+                Service parts organized for quick buying
               </h2>
             </div>
-            <Link href="/products" className="button-primary w-fit">
-              Shop catalog
+            <Link href="/products" className="button-secondary w-fit">
+              All products
               <ArrowRight aria-hidden className="h-4 w-4" />
             </Link>
           </div>
-          <div className="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {featured.map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/category/${category.slug}`}
+                className="surface p-5 transition hover:-translate-y-0.5 hover:shadow-panel"
+              >
+                <p className="text-xl font-black text-ink">{category.name}</p>
+                <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">
+                  {category.description}
+                </p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-electric">
+                  Browse
+                  <ArrowRight aria-hidden className="h-4 w-4" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_.9fr] lg:px-8">
+          <div className="flex flex-col justify-center">
+            <p className="text-sm font-black uppercase text-shopred">
+              Fitment confidence
+            </p>
+            <h2 className="mt-2 text-3xl font-black text-ink">
+              Know before you buy.
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600">
+              Product pages are built around fitment clarity, part numbers, and
+              variant-level stock so buyers can confirm the right part before
+              checkout.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/fitment-help" className="button-primary w-fit">
+                Fitment help
+                <ArrowRight aria-hidden className="h-4 w-4" />
+              </Link>
+              <Link href="/contact" className="button-secondary w-fit">
+                Contact support
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              {
+                icon: BadgeCheck,
+                title: "Part numbers",
+                text: "SKU and OE references stay visible where buyers make decisions."
+              },
+              {
+                icon: Wrench,
+                title: "Vehicle details",
+                text: "Year, make, model, engine, trim, and notes are shown together."
+              },
+              {
+                icon: PackageCheck,
+                title: "Stock status",
+                text: "Variant inventory shows whether an item is ready or backorderable."
+              },
+              {
+                icon: ShieldCheck,
+                title: "Secure checkout",
+                text: "Stripe Checkout handles payments, tax, shipping, and receipts."
+              }
+            ].map((item) => (
+              <div key={item.title} className="surface p-5">
+                <item.icon aria-hidden className="h-5 w-5 text-shopred" />
+                <p className="mt-3 font-black text-ink">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {item.text}
+                </p>
+              </div>
             ))}
           </div>
         </div>
