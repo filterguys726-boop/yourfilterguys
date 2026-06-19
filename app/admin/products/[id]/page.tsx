@@ -58,34 +58,6 @@ export default async function AdminProductPage({
         <AdminErrorAlert message={query?.error} />
         <ProductForm categories={categories} product={product} />
 
-        <section className="surface border border-red-200 bg-red-50 p-6">
-          <p className="text-sm font-black uppercase text-shopred">Danger zone</p>
-          <div className="mt-2 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div>
-              <h2 className="text-2xl font-black text-ink">Delete product</h2>
-              <p className="mt-2 max-w-3xl text-sm text-slate-700">
-                Remove this product from the catalog, including its variants and
-                fitment records. Existing order history will stay available.
-              </p>
-            </div>
-            <form action={deleteProductAction} className="flex flex-col gap-3 sm:flex-row">
-              <input type="hidden" name="product_id" value={product.id} />
-              <label className="grid gap-2">
-                <span className="label">Type DELETE</span>
-                <input
-                  className="field min-w-44 border-red-200 bg-white"
-                  name="delete_confirmation"
-                  placeholder="DELETE"
-                  required
-                />
-              </label>
-              <button type="submit" className="button-danger self-end">
-                Delete product
-              </button>
-            </form>
-          </div>
-        </section>
-
         <section className="surface overflow-hidden">
           <div className="border-b border-slate-200 p-5">
             <h2 className="text-2xl font-black text-ink">Variants</h2>
@@ -345,6 +317,34 @@ export default async function AdminProductPage({
               Add fitment
             </button>
           </form>
+        </section>
+
+        <section className="surface border border-red-200 bg-red-50 p-6">
+          <p className="text-sm font-black uppercase text-shopred">Danger zone</p>
+          <div className="mt-2 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <h2 className="text-2xl font-black text-ink">Delete product</h2>
+              <p className="mt-2 max-w-3xl text-sm text-slate-700">
+                Remove this product from the catalog, including its variants and
+                fitment records. Existing order history will stay available.
+              </p>
+            </div>
+            <form action={deleteProductAction} className="flex flex-col gap-3 sm:flex-row">
+              <input type="hidden" name="product_id" value={product.id} />
+              <label className="grid gap-2">
+                <span className="label">Type DELETE</span>
+                <input
+                  className="field min-w-44 border-red-200 bg-white"
+                  name="delete_confirmation"
+                  placeholder="DELETE"
+                  required
+                />
+              </label>
+              <button type="submit" className="button-danger self-end">
+                Delete product
+              </button>
+            </form>
+          </div>
         </section>
       </section>
     </div>
