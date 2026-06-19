@@ -226,26 +226,26 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section className="bg-[radial-gradient(circle_at_82%_12%,rgba(198,149,44,0.22),transparent_28%),linear-gradient(135deg,#0b1322_0%,#173f6d_58%,#111827_100%)] text-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_.9fr] lg:px-8">
           <div className="flex flex-col justify-center">
-            <p className="text-sm font-black uppercase text-shopred">
+            <p className="text-sm font-black uppercase text-amber-200">
               Fitment confidence
             </p>
-            <h2 className="mt-2 text-3xl font-black text-ink">
+            <h2 className="mt-2 text-3xl font-black text-white">
               Know before you buy.
             </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-200">
               Product pages are built around fitment clarity, part numbers, and
               variant-level stock so buyers can confirm the right part before
               checkout.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/fitment-help" className="button-primary w-fit">
+              <Link href="/fitment-help" className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-black text-ink shadow-sm transition hover:bg-slate-100 focus-ring">
                 Fitment help
                 <ArrowRight aria-hidden className="h-4 w-4" />
               </Link>
-              <Link href="/contact" className="button-secondary w-fit">
+              <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-md border border-white/25 bg-white/10 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/15 focus-ring">
                 Contact support
               </Link>
             </div>
@@ -273,10 +273,13 @@ export default async function HomePage() {
                 text: "Stripe Checkout handles payments, tax, shipping, and receipts."
               }
             ].map((item) => (
-              <div key={item.title} className="surface p-5">
-                <item.icon aria-hidden className="h-5 w-5 text-shopred" />
-                <p className="mt-3 font-black text-ink">{item.title}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+              <div
+                key={item.title}
+                className="rounded-lg border border-white/15 bg-white/10 p-5 shadow-sm backdrop-blur"
+              >
+                <item.icon aria-hidden className="h-5 w-5 text-amber-200" />
+                <p className="mt-3 font-black text-white">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-200">
                   {item.text}
                 </p>
               </div>
