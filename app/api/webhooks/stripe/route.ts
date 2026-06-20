@@ -18,6 +18,35 @@ function getProductMetadata(product: string | Stripe.Product | Stripe.DeletedPro
   return product.metadata;
 }
 
+function splitMetadataIds(value: string | undefined) {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+type VariantLookupRow = {
+  id: string;
+  sku: string;
+  product_id: string;
+  name: string;
+  price_cents: number;
+  products:
+    | {
+        id: string;
+        name: string;
+      }
+    | Array<{
+        id: string;
+        name: string;
+      }>
+    | null;
+};
+
+function getProductFromVariant(row: VariantLookupRow) {
+  return Array.isArray(row.products) ? row.products[0] : row.products;
+}
+
 export async function POST(request: Request) {
   if (!stripeWebhookSecret) {
     return NextResponse.json(
@@ -61,6 +90,20 @@ export async function POST(request: Request) {
     expand: ["data.price.product"]
   });
   const supabase = createServiceSupabaseClient();
+  const sessionProductIds = splitMetadataIds(session.metadata?.product_ids);
+  const sessionVariantIds = splitMetadataIds(session.metadata?.variant_ids);
+  const { data: variantRows } = sessionVariantIds.length
+    ? await supabase
+        .from("product_variants")
+        .select("id,sku,product_id,name,price_cents,products:product_id(id,name)")
+        .in("id", sessionVariantIds)
+    : { data: [] };
+  const variantsById = new Map(
+    ((variantRows ?? []) as unknown as VariantLookupRow[]).map((variant) => [
+      variant.id,
+      variant
+    ])
+  );
   const shippingAddress =
     session.customer_details?.address ?? session.shipping_details?.address ?? null;
   const subtotalCents = session.amount_subtotal ?? 0;
@@ -70,22 +113,35 @@ export async function POST(request: Request) {
     session.total_details?.amount_tax ??
     Math.max(totalCents - subtotalCents - shippingCents, 0);
 
-  const items = lineItems.data.map((lineItem) => {
+  const items = lineItems.data.map((lineItem, index) => {
     const metadata = lineItem.price?.product
       ? getProductMetadata(lineItem.price.product)
       : {};
+    const fallbackVariantId = sessionVariantIds[index] ?? "";
+    const fallbackProductId = sessionProductIds[index] ?? "";
+    const variantId = metadata.variant_id || fallbackVariantId;
+    const fallbackVariant = variantId ? variantsById.get(variantId) : undefined;
+    const fallbackProduct = fallbackVariant
+      ? getProductFromVariant(fallbackVariant)
+      : null;
     const quantity = lineItem.quantity ?? 1;
-    const unitAmount = lineItem.price?.unit_amount ?? 0;
+    const unitAmount =
+      lineItem.price?.unit_amount ?? fallbackVariant?.price_cents ?? 0;
 
     return {
-      product_id: metadata.product_id,
-      variant_id: metadata.variant_id,
-      sku: metadata.sku,
+      product_id:
+        metadata.product_id ||
+        fallbackProductId ||
+        fallbackVariant?.product_id ||
+        "",
+      variant_id: variantId,
+      sku: metadata.sku || fallbackVariant?.sku || "",
       product_name:
-        metadata.product_name ??
-        lineItem.description?.split(" - ")[0] ??
+        metadata.product_name ||
+        fallbackProduct?.name ||
+        lineItem.description?.split(" - ")[0] ||
         "Product",
-      variant_name: metadata.variant_name ?? "Variant",
+      variant_name: metadata.variant_name || fallbackVariant?.name || "Variant",
       quantity,
       unit_amount_cents: unitAmount,
       line_total_cents: unitAmount * quantity
