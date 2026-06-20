@@ -46,6 +46,16 @@ create table if not exists public.product_variants (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.product_images (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  image_url text not null,
+  image_alt text,
+  position integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.vehicle_fitment (
   id uuid primary key default gen_random_uuid(),
   product_id uuid not null references public.products(id) on delete cascade,
@@ -128,6 +138,7 @@ create table if not exists public.inventory_movements (
 create index if not exists products_category_id_idx on public.products(category_id);
 create index if not exists products_slug_idx on public.products(slug);
 create index if not exists product_variants_product_id_idx on public.product_variants(product_id);
+create index if not exists product_images_product_id_idx on public.product_images(product_id);
 create index if not exists vehicle_fitment_product_id_idx on public.vehicle_fitment(product_id);
 create index if not exists vehicle_fitment_lookup_idx on public.vehicle_fitment(year, make, model);
 create index if not exists orders_customer_id_idx on public.orders(customer_id);
@@ -158,6 +169,11 @@ for each row execute function public.set_updated_at();
 drop trigger if exists set_product_variants_updated_at on public.product_variants;
 create trigger set_product_variants_updated_at
 before update on public.product_variants
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_product_images_updated_at on public.product_images;
+create trigger set_product_images_updated_at
+before update on public.product_images
 for each row execute function public.set_updated_at();
 
 drop trigger if exists set_vehicle_fitment_updated_at on public.vehicle_fitment;
@@ -392,6 +408,7 @@ $$;
 alter table public.categories enable row level security;
 alter table public.products enable row level security;
 alter table public.product_variants enable row level security;
+alter table public.product_images enable row level security;
 alter table public.vehicle_fitment enable row level security;
 alter table public.customer_profiles enable row level security;
 alter table public.admin_users enable row level security;
@@ -437,6 +454,25 @@ using (
 drop policy if exists "Admins manage variants" on public.product_variants;
 create policy "Admins manage variants"
 on public.product_variants for all
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists "Public can read product images" on public.product_images;
+create policy "Public can read product images"
+on public.product_images for select
+using (
+  exists (
+    select 1
+    from public.products
+    where products.id = product_images.product_id
+      and products.active = true
+  )
+  or public.is_admin()
+);
+
+drop policy if exists "Admins manage product images" on public.product_images;
+create policy "Admins manage product images"
+on public.product_images for all
 using (public.is_admin())
 with check (public.is_admin());
 

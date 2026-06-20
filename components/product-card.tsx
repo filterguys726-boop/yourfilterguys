@@ -35,10 +35,11 @@ function getInventoryLabel(product: CatalogProduct) {
 
 export function ProductCard({ product }: { product: CatalogProduct }) {
   const lowestPrice = getLowestPrice(product);
+  const galleryCount = product.imageGallery?.length ?? 1;
 
   return (
     <article className="surface flex h-full flex-col overflow-hidden">
-      <Link href={`/products/${product.slug}`} className="block bg-white">
+      <Link href={`/products/${product.slug}`} className="relative block bg-white">
         <Image
           src={product.imageUrl}
           alt={product.imageAlt}
@@ -47,6 +48,11 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
           unoptimized
           className="aspect-[4/3] w-full object-contain p-3"
         />
+        {galleryCount > 1 ? (
+          <span className="absolute bottom-3 right-3 rounded-md bg-ink/90 px-2 py-1 text-xs font-bold text-white shadow-sm">
+            {galleryCount} photos
+          </span>
+        ) : null}
       </Link>
       <div className="flex flex-1 flex-col gap-4 p-5">
         <div className="space-y-2">

@@ -59,15 +59,8 @@ function errorPath(path: string, error: unknown) {
 
 async function uploadProductImage(
   supabase: Awaited<ReturnType<typeof assertAdmin>>,
-  formData: FormData,
-  existingUrl: string
+  file: File
 ) {
-  const file = formData.get("image_file");
-
-  if (!(file instanceof File) || file.size === 0) {
-    return existingUrl;
-  }
-
   const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-");
   const path = `products/${globalThis.crypto.randomUUID()}-${safeName}`;
   const { error } = await supabase.storage
@@ -85,17 +78,54 @@ async function uploadProductImage(
   return data.publicUrl;
 }
 
+function getImageFiles(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .filter((file): file is File => file instanceof File && file.size > 0);
+}
+
+async function addProductGalleryImages(
+  supabase: Awaited<ReturnType<typeof assertAdmin>>,
+  productId: string,
+  files: File[],
+  altText: string
+) {
+  if (!files.length) {
+    return;
+  }
+
+  const { count } = await supabase
+    .from("product_images")
+    .select("id", { count: "exact", head: true })
+    .eq("product_id", productId);
+  const startPosition = count ?? 0;
+  const uploadedImages = await Promise.all(
+    files.map(async (file, index) => ({
+      product_id: productId,
+      image_url: await uploadProductImage(supabase, file),
+      image_alt: altText,
+      position: startPosition + index
+    }))
+  );
+  const { error } = await supabase.from("product_images").insert(uploadedImages);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function upsertProductAction(formData: FormData) {
   const supabase = await assertAdmin();
   const productId = textValue(formData, "product_id");
   const existingImageUrl = textValue(formData, "existing_image_url");
   const requestedImageUrl = textValue(formData, "image_url");
   const imageFile = formData.get("image_file");
+  const galleryFiles = getImageFiles(formData, "image_files");
   let imageUrl = requestedImageUrl || existingImageUrl || "/product-oil-filter.svg";
 
   if (imageFile instanceof File && imageFile.size > 0) {
     try {
-      imageUrl = await uploadProductImage(supabase, formData, existingImageUrl);
+      imageUrl = await uploadProductImage(supabase, imageFile);
     } catch (error) {
       redirect(
         errorPath(
@@ -133,6 +163,17 @@ export async function upsertProductAction(formData: FormData) {
       redirect(errorPath(`/admin/products/${productId}`, error));
     }
 
+    try {
+      await addProductGalleryImages(
+        supabase,
+        productId,
+        galleryFiles,
+        payload.image_alt
+      );
+    } catch (error) {
+      redirect(errorPath(`/admin/products/${productId}`, error));
+    }
+
     revalidatePath(`/admin/products/${productId}`);
     revalidatePath(`/products/${payload.slug}`);
     redirect(`/admin/products/${productId}`);
@@ -146,6 +187,17 @@ export async function upsertProductAction(formData: FormData) {
 
   if (error) {
     redirect(errorPath("/admin/products/new", error));
+  }
+
+  try {
+    await addProductGalleryImages(
+      supabase,
+      data.id,
+      galleryFiles,
+      payload.image_alt
+    );
+  } catch (galleryError) {
+    redirect(errorPath(`/admin/products/${data.id}`, galleryError));
   }
 
   revalidatePath("/admin/products");

@@ -107,9 +107,43 @@ export function ProductForm({
           />
         </label>
         <label className="grid gap-2">
-          <span className="label">Upload image</span>
+          <span className="label">Upload primary image</span>
           <input className="field" name="image_file" type="file" accept="image/*" />
         </label>
+        <label className="grid gap-2 md:col-span-2">
+          <span className="label">Add gallery images</span>
+          <input
+            className="field"
+            name="image_files"
+            type="file"
+            accept="image/*"
+            multiple
+          />
+          <span className="text-xs font-semibold text-slate-500">
+            Upload one or more additional product angles, labels, packaging
+            shots, or detail photos.
+          </span>
+        </label>
+        {product?.imageGallery?.length ? (
+          <div className="md:col-span-2">
+            <p className="label">Current gallery</p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {product.imageGallery.map((image) => (
+                <div
+                  key={image.url}
+                  className="overflow-hidden rounded-md border border-slate-200 bg-white"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.url}
+                    alt={image.alt}
+                    className="aspect-square w-full object-contain p-2"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <label className="grid gap-2">
           <span className="label">Image alt text</span>
           <input

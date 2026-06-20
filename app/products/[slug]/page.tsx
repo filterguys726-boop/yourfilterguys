@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BadgeCheck, Box, Ruler, Truck } from "lucide-react";
 import { AddToCartPanel } from "@/components/add-to-cart-panel";
 import { FitmentTable } from "@/components/fitment-table";
+import { ProductGallery } from "@/components/product-gallery";
 import { getProductBySlug } from "@/lib/catalog";
 import { formatMoney } from "@/lib/format";
 
@@ -43,37 +43,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
           <div className="mt-7 grid gap-8 lg:grid-cols-[1fr_420px]">
             <div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]">
-              <div className="grid gap-3">
-                <div className="surface overflow-hidden bg-white">
-                  <Image
-                    src={product.imageUrl}
-                    alt={product.imageAlt}
-                    width={900}
-                    height={900}
-                    unoptimized
-                    className="aspect-square w-full object-contain p-3"
-                  />
-                </div>
-                {gallery.length > 1 ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    {gallery.map((image) => (
-                      <div
-                        key={image.url}
-                        className="overflow-hidden rounded-lg border border-slate-200 bg-white"
-                      >
-                        <Image
-                          src={image.url}
-                          alt={image.alt}
-                          width={420}
-                          height={320}
-                          unoptimized
-                          className="aspect-[4/3] w-full object-contain p-2"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
+              <ProductGallery images={gallery} />
 
               <div>
                 <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">

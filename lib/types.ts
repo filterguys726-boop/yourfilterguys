@@ -32,6 +32,14 @@ export type VehicleFitment = {
   notes: string | null;
 };
 
+export type ProductImage = {
+  id?: string;
+  productId?: string;
+  url: string;
+  alt: string;
+  position?: number;
+};
+
 export type CatalogProduct = {
   id: string;
   name: string;
@@ -43,10 +51,7 @@ export type CatalogProduct = {
   category: Category;
   imageUrl: string;
   imageAlt: string;
-  imageGallery?: Array<{
-    url: string;
-    alt: string;
-  }>;
+  imageGallery?: ProductImage[];
   active: boolean;
   inventoryBehavior: InventoryBehavior;
   shippingNotes: string | null;
