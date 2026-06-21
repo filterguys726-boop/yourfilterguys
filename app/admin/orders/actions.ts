@@ -204,6 +204,8 @@ export async function recoverStripeOrderAction(formData: FormData) {
     redirect(ordersPath(new Error("Enter a valid Stripe Checkout Session ID.")));
   }
 
+  let nextPath = ordersPath();
+
   try {
     const stripe = getStripe();
     const serviceSupabase = createServiceSupabaseClient();
@@ -305,115 +307,116 @@ export async function recoverStripeOrderAction(formData: FormData) {
 
       await notifyRecoveredOrder(adminSupabase, orderId);
       revalidatePath("/admin/orders");
-      redirect(ordersPath());
-    }
+      nextPath = ordersPath();
+    } else {
+      const shippingAddress =
+        session.customer_details?.address ?? session.shipping_details?.address ?? null;
+      const subtotalCents = session.amount_subtotal ?? 0;
+      const totalCents = session.amount_total ?? 0;
+      const shippingCents = session.total_details?.amount_shipping ?? 0;
+      const taxCents =
+        session.total_details?.amount_tax ??
+        Math.max(totalCents - subtotalCents - shippingCents, 0);
 
-    const shippingAddress =
-      session.customer_details?.address ?? session.shipping_details?.address ?? null;
-    const subtotalCents = session.amount_subtotal ?? 0;
-    const totalCents = session.amount_total ?? 0;
-    const shippingCents = session.total_details?.amount_shipping ?? 0;
-    const taxCents =
-      session.total_details?.amount_tax ??
-      Math.max(totalCents - subtotalCents - shippingCents, 0);
-
-    const { data: order, error: orderError } = await adminSupabase
-      .from("orders")
-      .insert({
-        stripe_checkout_session_id: session.id,
-        stripe_customer_id:
-          typeof session.customer === "string" ? session.customer : null,
-        payment_intent_id:
-          typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : null,
-        customer_id: session.metadata?.customer_id || null,
-        customer_email: session.customer_details?.email ?? session.customer_email ?? "",
-        status: "confirmed",
-        payment_status: "paid",
-        fulfillment_status: "pending",
-        currency: session.currency ?? "usd",
-        subtotal_cents: subtotalCents,
-        tax_cents: taxCents,
-        shipping_cents: shippingCents,
-        total_cents: totalCents,
-        shipping_address: shippingAddress
-      })
-      .select("id")
-      .single();
-
-    if (orderError) {
-      throw orderError;
-    }
-
-    const orderId = order.id as string;
-    await insertOrderItemsWithFallback(adminSupabase, orderId, items);
-
-    for (const item of items) {
-      if (!item.variant_id) {
-        continue;
-      }
-
-      const { data: variant, error: variantError } = await adminSupabase
-        .from("product_variants")
-        .select("stock_quantity")
-        .eq("id", item.variant_id)
+      const { data: order, error: orderError } = await adminSupabase
+        .from("orders")
+        .insert({
+          stripe_checkout_session_id: session.id,
+          stripe_customer_id:
+            typeof session.customer === "string" ? session.customer : null,
+          payment_intent_id:
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : null,
+          customer_id: session.metadata?.customer_id || null,
+          customer_email: session.customer_details?.email ?? session.customer_email ?? "",
+          status: "confirmed",
+          payment_status: "paid",
+          fulfillment_status: "pending",
+          currency: session.currency ?? "usd",
+          subtotal_cents: subtotalCents,
+          tax_cents: taxCents,
+          shipping_cents: shippingCents,
+          total_cents: totalCents,
+          shipping_address: shippingAddress
+        })
+        .select("id")
         .single();
 
-      if (variantError) {
-        console.error("Recovered order inventory variant lookup failed", {
-          orderId,
-          variantId: item.variant_id,
-          error: variantError
-        });
-        continue;
+      if (orderError) {
+        throw orderError;
       }
 
-      const nextStock = Math.max(
-        0,
-        Number(variant.stock_quantity ?? 0) - item.quantity
-      );
-      const { error: stockError } = await adminSupabase
-        .from("product_variants")
-        .update({ stock_quantity: nextStock })
-        .eq("id", item.variant_id);
+      const orderId = order.id as string;
+      await insertOrderItemsWithFallback(adminSupabase, orderId, items);
 
-      if (stockError) {
-        console.error("Recovered order stock update failed", {
-          orderId,
-          variantId: item.variant_id,
-          error: stockError
-        });
-        continue;
+      for (const item of items) {
+        if (!item.variant_id) {
+          continue;
+        }
+
+        const { data: variant, error: variantError } = await adminSupabase
+          .from("product_variants")
+          .select("stock_quantity")
+          .eq("id", item.variant_id)
+          .single();
+
+        if (variantError) {
+          console.error("Recovered order inventory variant lookup failed", {
+            orderId,
+            variantId: item.variant_id,
+            error: variantError
+          });
+          continue;
+        }
+
+        const nextStock = Math.max(
+          0,
+          Number(variant.stock_quantity ?? 0) - item.quantity
+        );
+        const { error: stockError } = await adminSupabase
+          .from("product_variants")
+          .update({ stock_quantity: nextStock })
+          .eq("id", item.variant_id);
+
+        if (stockError) {
+          console.error("Recovered order stock update failed", {
+            orderId,
+            variantId: item.variant_id,
+            error: stockError
+          });
+          continue;
+        }
+
+        const { error: movementError } = await adminSupabase
+          .from("inventory_movements")
+          .insert({
+            variant_id: item.variant_id,
+            quantity_delta: -item.quantity,
+            movement_type: "sale",
+            reason: "stripe_checkout_recovery",
+            reference_type: "order",
+            reference_id: orderId
+          });
+
+        if (movementError) {
+          console.error("Recovered order inventory movement insert failed", {
+            orderId,
+            variantId: item.variant_id,
+            error: movementError
+          });
+        }
       }
 
-      const { error: movementError } = await adminSupabase
-        .from("inventory_movements")
-        .insert({
-          variant_id: item.variant_id,
-          quantity_delta: -item.quantity,
-          movement_type: "sale",
-          reason: "stripe_checkout_recovery",
-          reference_type: "order",
-          reference_id: orderId
-        });
-
-      if (movementError) {
-        console.error("Recovered order inventory movement insert failed", {
-          orderId,
-          variantId: item.variant_id,
-          error: movementError
-        });
-      }
+      await notifyRecoveredOrder(adminSupabase, orderId);
+      revalidatePath("/admin/orders");
+      nextPath = ordersPath();
     }
-
-    await notifyRecoveredOrder(adminSupabase, orderId);
-    revalidatePath("/admin/orders");
   } catch (error) {
-    redirect(ordersPath(error));
+    nextPath = ordersPath(error);
   }
 
-  redirect(ordersPath());
+  redirect(nextPath);
 }
 
 type OrderItemRow = {
