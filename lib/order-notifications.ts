@@ -92,8 +92,19 @@ export async function sendOrderCreatedNotifications(
   );
 
   if (!result.customerSent || !result.adminSent) {
+    const failures = [
+      !result.customerSent
+        ? `customer email failed: ${result.customerError ?? "unknown error"}`
+        : "",
+      !result.adminSent
+        ? `admin email failed: ${result.adminError ?? "unknown error"}`
+        : ""
+    ]
+      .filter(Boolean)
+      .join("; ");
+
     throw new Error(
-      "One or more order emails failed. Check RESEND_API_KEY, ORDER_FROM_EMAIL, ADMIN_ORDER_EMAIL, and Resend logs."
+      `Order email delivery failed: ${failures}. Check RESEND_API_KEY, ORDER_FROM_EMAIL, ADMIN_ORDER_EMAIL, and Resend logs.`
     );
   }
 

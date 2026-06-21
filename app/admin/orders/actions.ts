@@ -38,13 +38,32 @@ function textValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function readableError(error: unknown, fallback: string) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 function ordersPath(error?: unknown) {
   if (!error) {
     return "/admin/orders?recovered=1";
   }
 
-  const message =
-    error instanceof Error ? error.message : "The Stripe order could not be recovered.";
+  const message = readableError(
+    error,
+    "The Stripe order could not be recovered."
+  );
 
   return `/admin/orders?error=${encodeURIComponent(message)}`;
 }
@@ -54,8 +73,7 @@ function orderUpdatedPath(error?: unknown) {
     return "/admin/orders?updated=1";
   }
 
-  const message =
-    error instanceof Error ? error.message : "The order could not be updated.";
+  const message = readableError(error, "The order could not be updated.");
 
   return `/admin/orders?error=${encodeURIComponent(message)}`;
 }
@@ -65,8 +83,7 @@ function orderEmailPath(error?: unknown) {
     return "/admin/orders?emailed=1";
   }
 
-  const message =
-    error instanceof Error ? error.message : "The order email could not be sent.";
+  const message = readableError(error, "The order email could not be sent.");
 
   return `/admin/orders?error=${encodeURIComponent(message)}`;
 }

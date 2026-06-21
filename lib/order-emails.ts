@@ -28,6 +28,29 @@ export type OrderEmailData = {
   items: OrderEmailItem[];
 };
 
+function emailErrorMessage(result: PromiseSettledResult<unknown>) {
+  if (result.status === "fulfilled") {
+    return null;
+  }
+
+  const reason = result.reason;
+
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+
+  if (
+    reason &&
+    typeof reason === "object" &&
+    "message" in reason &&
+    typeof reason.message === "string"
+  ) {
+    return reason.message;
+  }
+
+  return "Unknown email delivery error.";
+}
+
 function logEmailFailure(label: string, result: PromiseSettledResult<unknown>) {
   if (result.status === "rejected") {
     console.error(`${label} failed`, result.reason);
@@ -199,13 +222,19 @@ Open the admin dashboard: https://yourfilterguys.com/admin/orders`;
 
   const [customerResult, adminResult] = await Promise.allSettled([
     customerDelivery,
-    shouldSendAdmin && adminOrderEmail
-      ? sendTransactionalEmail({
-          to: adminOrderEmail,
-          subject: adminSubject,
-          html: adminHtml,
-          text: adminText
-        })
+    shouldSendAdmin
+      ? adminOrderEmail
+        ? sendTransactionalEmail({
+            to: adminOrderEmail,
+            subject: adminSubject,
+            html: adminHtml,
+            text: adminText
+          })
+        : Promise.reject(
+            new Error(
+              "ADMIN_ORDER_EMAIL is missing in Vercel Production environment variables."
+            )
+          )
       : Promise.resolve(null)
   ]);
 
@@ -215,7 +244,9 @@ Open the admin dashboard: https://yourfilterguys.com/admin/orders`;
   return {
     customerSent: shouldSendCustomer && customerResult.status === "fulfilled",
     adminSent:
-      shouldSendAdmin && Boolean(adminOrderEmail) && adminResult.status === "fulfilled"
+      shouldSendAdmin && Boolean(adminOrderEmail) && adminResult.status === "fulfilled",
+    customerError: emailErrorMessage(customerResult),
+    adminError: emailErrorMessage(adminResult)
   };
 }
 

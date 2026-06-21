@@ -6,6 +6,7 @@ import {
   updateOrderFulfillmentAction
 } from "@/app/admin/orders/actions";
 import { getAdminOrders } from "@/lib/admin";
+import { adminOrderEmail, hasEmailEnv, orderFromEmail } from "@/lib/env";
 import { formatMoney } from "@/lib/format";
 import type { OrderSummary } from "@/lib/types";
 
@@ -311,6 +312,40 @@ export default async function AdminOrdersPage({
             create the order automatically.
           </p>
         </form>
+        <div className="surface mb-6 p-5">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <p className="text-xs font-black uppercase text-slate-500">
+                Resend status
+              </p>
+              <p
+                className={`mt-2 text-sm font-black ${
+                  hasEmailEnv ? "text-bay" : "text-shopred"
+                }`}
+              >
+                {hasEmailEnv ? "Configured" : "Missing API key or sender"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase text-slate-500">
+                From email
+              </p>
+              <p className="mt-2 break-all text-sm text-ink">{orderFromEmail}</p>
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase text-slate-500">
+                Admin recipient
+              </p>
+              <p
+                className={`mt-2 break-all text-sm font-semibold ${
+                  adminOrderEmail ? "text-ink" : "text-shopred"
+                }`}
+              >
+                {adminOrderEmail || "Missing ADMIN_ORDER_EMAIL"}
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="grid gap-5">
           {orders.map((order) => (
             <OrderCard key={order.id} order={order} />
