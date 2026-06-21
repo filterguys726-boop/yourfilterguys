@@ -180,3 +180,71 @@ export async function getAdminOrders(): Promise<{
     }))
   };
 }
+
+export async function getAdminCustomerPreview(email?: string): Promise<{
+  state: AdminState;
+  customers: Array<{
+    email: string;
+    orderCount: number;
+    totalCents: number;
+    lastOrderAt: string;
+  }>;
+  selectedEmail: string;
+  orders: OrderSummary[];
+}> {
+  const { state, orders } = await getAdminOrders();
+
+  if (!state.configured || !state.user || !state.isAdmin) {
+    return { state, customers: [], selectedEmail: "", orders: [] };
+  }
+
+  const customerMap = new Map<
+    string,
+    {
+      email: string;
+      orderCount: number;
+      totalCents: number;
+      lastOrderAt: string;
+    }
+  >();
+
+  orders.forEach((order) => {
+    const normalizedEmail = order.customerEmail.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      return;
+    }
+
+    const existing = customerMap.get(normalizedEmail);
+    const lastOrderAt =
+      existing && new Date(existing.lastOrderAt) > new Date(order.createdAt)
+        ? existing.lastOrderAt
+        : order.createdAt;
+
+    customerMap.set(normalizedEmail, {
+      email: order.customerEmail,
+      orderCount: (existing?.orderCount ?? 0) + 1,
+      totalCents: (existing?.totalCents ?? 0) + order.totalCents,
+      lastOrderAt
+    });
+  });
+
+  const customers = Array.from(customerMap.values()).sort(
+    (customerA, customerB) =>
+      new Date(customerB.lastOrderAt).getTime() -
+      new Date(customerA.lastOrderAt).getTime()
+  );
+  const selectedEmail = (email ?? customers[0]?.email ?? "").trim();
+  const selectedEmailLower = selectedEmail.toLowerCase();
+
+  return {
+    state,
+    customers,
+    selectedEmail,
+    orders: selectedEmailLower
+      ? orders.filter(
+          (order) => order.customerEmail.toLowerCase() === selectedEmailLower
+        )
+      : []
+  };
+}

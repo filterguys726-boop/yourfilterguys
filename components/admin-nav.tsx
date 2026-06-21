@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { Boxes, ClipboardList, LayoutDashboard, PackagePlus } from "lucide-react";
+import {
+  Boxes,
+  ClipboardList,
+  LayoutDashboard,
+  PackagePlus,
+  Users
+} from "lucide-react";
 import { LogoutButton } from "@/components/logout-button";
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: PackagePlus },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList },
+  { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/inventory", label: "Inventory", icon: Boxes }
 ];
 
