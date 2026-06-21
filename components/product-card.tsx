@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, Gauge, PackageCheck } from "lucide-react";
+import { ProductCardGallery } from "@/components/product-card-gallery";
 import { formatMoney } from "@/lib/format";
 import type { CatalogProduct } from "@/lib/types";
 
@@ -41,25 +41,17 @@ export function ProductCard({
   className?: string;
 }) {
   const lowestPrice = getLowestPrice(product);
-  const galleryCount = product.imageGallery?.length ?? 1;
+  const gallery =
+    product.imageGallery?.length
+      ? product.imageGallery
+      : [{ url: product.imageUrl, alt: product.imageAlt }];
 
   return (
     <article className={`surface flex h-full flex-col overflow-hidden ${className}`}>
-      <Link href={`/products/${product.slug}`} className="relative block bg-white">
-        <Image
-          src={product.imageUrl}
-          alt={product.imageAlt}
-          width={900}
-          height={700}
-          unoptimized
-          className="aspect-[4/3] w-full object-contain p-3"
-        />
-        {galleryCount > 1 ? (
-          <span className="absolute bottom-3 right-3 rounded-md bg-ink/90 px-2 py-1 text-xs font-bold text-white shadow-sm">
-            {galleryCount} photos
-          </span>
-        ) : null}
-      </Link>
+      <ProductCardGallery
+        href={`/products/${product.slug}`}
+        images={gallery}
+      />
       <div className="flex flex-1 flex-col gap-4 p-5">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
