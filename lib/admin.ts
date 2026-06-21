@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import { getProducts } from "@/lib/catalog";
+import { adminEmails } from "@/lib/env";
 import {
   createServerSupabaseClient,
   createServiceSupabaseClient
@@ -57,6 +58,13 @@ export async function getAdminState(): Promise<AdminState> {
 
   if (!user) {
     return { configured: true, user: null, isAdmin: false };
+  }
+
+  const userEmail = user.email?.toLowerCase() ?? "";
+  const isAllowlistedAdmin = Boolean(userEmail && adminEmails.includes(userEmail));
+
+  if (isAllowlistedAdmin) {
+    return { configured: true, user, isAdmin: true };
   }
 
   const serviceSupabase = createServiceSupabaseClient();

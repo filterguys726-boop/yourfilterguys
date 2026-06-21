@@ -218,6 +218,10 @@ export async function recoverStripeOrderAction(formData: FormData) {
       };
     });
 
+    if (!items.length) {
+      throw new Error("Stripe returned no line items for this Checkout Session.");
+    }
+
     if (existingOrder) {
       const orderId = existingOrder.id as string;
       const { data: existingItems, error: existingItemsError } =
@@ -251,6 +255,11 @@ export async function recoverStripeOrderAction(formData: FormData) {
         if (orderItemsError) {
           throw orderItemsError;
         }
+
+        console.info("Recovered missing order line items", {
+          orderId,
+          count: items.length
+        });
       }
 
       await notifyRecoveredOrder(orderId);

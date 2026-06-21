@@ -182,6 +182,10 @@ async function ensureOrderItems(
   orderId: string,
   items: WebhookOrderItem[]
 ) {
+  if (!items.length) {
+    throw new Error("Stripe checkout session did not return any line items.");
+  }
+
   const { data: existingItems, error: existingItemsError } = await supabase
     .from("order_items")
     .select("id")
@@ -193,6 +197,10 @@ async function ensureOrderItems(
   }
 
   if (existingItems?.length) {
+    console.info("Order already has line items", {
+      orderId,
+      count: existingItems.length
+    });
     return;
   }
 
@@ -213,6 +221,11 @@ async function ensureOrderItems(
   if (orderItemsError) {
     throw orderItemsError;
   }
+
+  console.info("Inserted order line items", {
+    orderId,
+    count: items.length
+  });
 }
 
 export async function POST(request: Request) {
@@ -256,6 +269,10 @@ export async function POST(request: Request) {
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
     limit: 100,
     expand: ["data.price.product"]
+  });
+  console.info("Stripe checkout line items loaded", {
+    sessionId: session.id,
+    count: lineItems.data.length
   });
   const supabase = createServiceSupabaseClient();
   const sessionProductIds = splitMetadataIds(session.metadata?.product_ids);

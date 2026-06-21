@@ -19,6 +19,20 @@ export const stripeShippingRates = [
 
 export const hasStripeEnv = Boolean(stripeSecretKey);
 
+const defaultAdminEmails = ["maiko.ssb@gmail.com", "filterguys726@gmail.com"];
+
+export const adminEmails = Array.from(
+  new Set(
+    [
+      ...defaultAdminEmails,
+      ...(process.env.ADMIN_EMAILS ?? "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean)
+    ].map((email) => email.toLowerCase())
+  )
+);
+
 export const resendApiKey = process.env.RESEND_API_KEY ?? "";
 export const orderFromEmail =
   process.env.ORDER_FROM_EMAIL ?? "Your Filter Guys <orders@yourfilterguys.com>";
