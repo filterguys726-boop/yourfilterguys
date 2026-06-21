@@ -94,6 +94,7 @@ async function processCheckoutDirectly(
   }
 
   if (existingOrder) {
+    await ensureOrderItems(supabase, existingOrder.id as string, input.items);
     return existingOrder.id as string;
   }
 
@@ -127,23 +128,7 @@ async function processCheckoutDirectly(
   }
 
   const orderId = order.id as string;
-  const { error: orderItemsError } = await supabase.from("order_items").insert(
-    input.items.map((item) => ({
-      order_id: orderId,
-      product_id: item.product_id || null,
-      variant_id: item.variant_id || null,
-      product_name: item.product_name,
-      variant_name: item.variant_name,
-      sku: item.sku,
-      quantity: item.quantity,
-      unit_amount_cents: item.unit_amount_cents,
-      line_total_cents: item.line_total_cents
-    }))
-  );
-
-  if (orderItemsError) {
-    throw orderItemsError;
-  }
+  await ensureOrderItems(supabase, orderId, input.items);
 
   for (const item of input.items) {
     if (!item.variant_id) {
@@ -190,6 +175,44 @@ async function processCheckoutDirectly(
   }
 
   return orderId;
+}
+
+async function ensureOrderItems(
+  supabase: SupabaseClient,
+  orderId: string,
+  items: WebhookOrderItem[]
+) {
+  const { data: existingItems, error: existingItemsError } = await supabase
+    .from("order_items")
+    .select("id")
+    .eq("order_id", orderId)
+    .limit(1);
+
+  if (existingItemsError) {
+    throw existingItemsError;
+  }
+
+  if (existingItems?.length) {
+    return;
+  }
+
+  const { error: orderItemsError } = await supabase.from("order_items").insert(
+    items.map((item) => ({
+      order_id: orderId,
+      product_id: item.product_id || null,
+      variant_id: item.variant_id || null,
+      product_name: item.product_name,
+      variant_name: item.variant_name,
+      sku: item.sku,
+      quantity: item.quantity,
+      unit_amount_cents: item.unit_amount_cents,
+      line_total_cents: item.line_total_cents
+    }))
+  );
+
+  if (orderItemsError) {
+    throw orderItemsError;
+  }
 }
 
 export async function POST(request: Request) {
@@ -304,38 +327,17 @@ export async function POST(request: Request) {
     items
   };
 
-  const { data: orderId, error } = await supabase.rpc("process_paid_checkout", {
-    session_id_input: session.id,
-    stripe_customer_id_input:
-      typeof session.customer === "string" ? session.customer : null,
-    payment_intent_id_input:
-      typeof session.payment_intent === "string" ? session.payment_intent : null,
-    customer_id_input: session.metadata?.customer_id || null,
-    customer_email_input: orderInput.customerEmail,
-    currency_input: session.currency ?? "usd",
-    subtotal_cents_input: subtotalCents,
-    tax_cents_input: taxCents,
-    shipping_cents_input: shippingCents,
-    total_cents_input: totalCents,
-    shipping_address_input: shippingAddress,
-    items_input: items
-  });
-
-  if (error) {
-    try {
-      const directOrderId = await processCheckoutDirectly(supabase, orderInput);
-      await notifyPaidOrder(supabase, directOrderId);
-    } catch (directError) {
-      return NextResponse.json(
-        {
-          error:
-            directError instanceof Error ? directError.message : error.message
-        },
-        { status: 500 }
-      );
-    }
-  } else if (orderId) {
-    await notifyPaidOrder(supabase, orderId as string);
+  try {
+    const orderId = await processCheckoutDirectly(supabase, orderInput);
+    await notifyPaidOrder(supabase, orderId);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Order could not be created."
+      },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ received: true });

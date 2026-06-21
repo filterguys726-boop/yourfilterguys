@@ -164,12 +164,6 @@ export async function recoverStripeOrderAction(formData: FormData) {
       throw existingOrderError;
     }
 
-    if (existingOrder) {
-      await notifyRecoveredOrder(existingOrder.id as string);
-      revalidatePath("/admin/orders");
-      redirect(ordersPath());
-    }
-
     const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
       limit: 100,
       expand: ["data.price.product"]
@@ -223,6 +217,46 @@ export async function recoverStripeOrderAction(formData: FormData) {
         line_total_cents: unitAmount * quantity
       };
     });
+
+    if (existingOrder) {
+      const orderId = existingOrder.id as string;
+      const { data: existingItems, error: existingItemsError } =
+        await serviceSupabase
+          .from("order_items")
+          .select("id")
+          .eq("order_id", orderId)
+          .limit(1);
+
+      if (existingItemsError) {
+        throw existingItemsError;
+      }
+
+      if (!existingItems?.length) {
+        const { error: orderItemsError } = await serviceSupabase
+          .from("order_items")
+          .insert(
+            items.map((item) => ({
+              order_id: orderId,
+              product_id: item.product_id || null,
+              variant_id: item.variant_id || null,
+              product_name: item.product_name,
+              variant_name: item.variant_name,
+              sku: item.sku,
+              quantity: item.quantity,
+              unit_amount_cents: item.unit_amount_cents,
+              line_total_cents: item.line_total_cents
+            }))
+          );
+
+        if (orderItemsError) {
+          throw orderItemsError;
+        }
+      }
+
+      await notifyRecoveredOrder(orderId);
+      revalidatePath("/admin/orders");
+      redirect(ordersPath());
+    }
 
     const shippingAddress =
       session.customer_details?.address ?? session.shipping_details?.address ?? null;
