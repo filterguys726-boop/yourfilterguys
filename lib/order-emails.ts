@@ -81,6 +81,10 @@ function formatAddress(address: Record<string, unknown> | null | undefined) {
 }
 
 function orderItemsText(items: OrderEmailItem[], currency: string) {
+  if (!items.length) {
+    return "Line items are not available in the order database yet. Check Stripe and the admin order dashboard for payment details.";
+  }
+
   return items
     .map(
       (item) =>
@@ -93,6 +97,15 @@ function orderItemsText(items: OrderEmailItem[], currency: string) {
 }
 
 function orderItemsHtml(items: OrderEmailItem[], currency: string) {
+  if (!items.length) {
+    return `
+      <tr>
+        <td colspan="3" style="padding:12px;border-bottom:1px solid #e5e7eb;color:#64748b;">
+          Line items are not available in the order database yet. Check Stripe and the admin order dashboard for payment details.
+        </td>
+      </tr>`;
+  }
+
   return items
     .map(
       (item) => `

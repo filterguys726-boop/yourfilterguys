@@ -84,7 +84,7 @@ export async function sendOrderCreatedNotifications(
     .eq("order_id", orderId);
 
   if (itemsError) {
-    throw itemsError;
+    console.error("Order email line items could not be loaded", itemsError);
   }
 
   const result = await sendOrderConfirmationEmails(
