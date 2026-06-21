@@ -23,6 +23,11 @@ type OrderRow = {
   }>;
 };
 
+const orderSelect = `
+  id,order_number,status,payment_status,fulfillment_status,customer_email,total_cents,currency,created_at,
+  order_items(id,product_name,variant_name,sku,quantity,unit_amount_cents,line_total_cents)
+`;
+
 export type CustomerProfile = {
   id: string;
   email: string;
@@ -124,24 +129,39 @@ export async function getCustomerOrders(): Promise<{
     return { configured: true, user: null, orders: [] };
   }
 
-  const { data, error } = await supabase
-    .from("orders")
-    .select(
-      `
-      id,order_number,status,payment_status,fulfillment_status,customer_email,total_cents,currency,created_at,
-      order_items(id,product_name,variant_name,sku,quantity,unit_amount_cents,line_total_cents)
-    `
-    )
-    .order("created_at", { ascending: false });
+  const [ordersByUserId, ordersByEmail] = await Promise.all([
+    supabase
+      .from("orders")
+      .select(orderSelect)
+      .eq("customer_id", user.id)
+      .order("created_at", { ascending: false }),
+    user.email
+      ? supabase
+          .from("orders")
+          .select(orderSelect)
+          .eq("customer_email", user.email)
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null })
+  ]);
 
-  if (error || !data) {
+  if (ordersByUserId.error || ordersByEmail.error) {
     return { configured: true, user, orders: [] };
   }
+
+  const ordersById = new Map<string, OrderRow>();
+
+  ([...(ordersByUserId.data ?? []), ...(ordersByEmail.data ?? [])] as OrderRow[])
+    .sort(
+      (orderA, orderB) =>
+        new Date(orderB.created_at).getTime() -
+        new Date(orderA.created_at).getTime()
+    )
+    .forEach((order) => ordersById.set(order.id, order));
 
   return {
     configured: true,
     user,
-    orders: (data as OrderRow[]).map(mapOrder)
+    orders: Array.from(ordersById.values()).map(mapOrder)
   };
 }
 
@@ -166,13 +186,13 @@ export async function getCustomerOrder(orderId: string): Promise<{
 
   const { data, error } = await supabase
     .from("orders")
-    .select(
-      `
-      id,order_number,status,payment_status,fulfillment_status,customer_email,total_cents,currency,created_at,
-      order_items(id,product_name,variant_name,sku,quantity,unit_amount_cents,line_total_cents)
-    `
-    )
+    .select(orderSelect)
     .eq("id", orderId)
+    .or(
+      user.email
+        ? `customer_id.eq.${user.id},customer_email.eq.${user.email}`
+        : `customer_id.eq.${user.id}`
+    )
     .maybeSingle();
 
   if (error || !data) {

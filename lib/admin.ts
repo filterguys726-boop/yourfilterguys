@@ -59,7 +59,8 @@ export async function getAdminState(): Promise<AdminState> {
     return { configured: true, user: null, isAdmin: false };
   }
 
-  const { data } = await supabase
+  const serviceSupabase = createServiceSupabaseClient();
+  const { data } = await serviceSupabase
     .from("admin_users")
     .select("user_id")
     .eq("user_id", user.id)
