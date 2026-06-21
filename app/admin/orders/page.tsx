@@ -7,6 +7,7 @@ import {
 } from "@/app/admin/orders/actions";
 import { getAdminOrders } from "@/lib/admin";
 import { formatMoney } from "@/lib/format";
+import type { OrderSummary } from "@/lib/types";
 
 type AdminOrdersPageProps = {
   searchParams?: Promise<{
@@ -16,6 +17,236 @@ type AdminOrdersPageProps = {
     updated?: string;
   }>;
 };
+
+function formatAddress(address: Record<string, unknown> | null | undefined) {
+  if (!address) {
+    return "No shipping address captured.";
+  }
+
+  return [
+    address.line1,
+    address.line2,
+    [address.city, address.state, address.postal_code].filter(Boolean).join(", "),
+    address.country
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function statusClass(value: string) {
+  if (["paid", "confirmed", "shipped", "delivered"].includes(value)) {
+    return "bg-emerald-50 text-bay border-emerald-200";
+  }
+
+  if (["pending", "processing"].includes(value)) {
+    return "bg-amber-50 text-amber-800 border-amber-200";
+  }
+
+  return "bg-slate-100 text-slate-700 border-slate-200";
+}
+
+function OrderCard({ order }: { order: OrderSummary }) {
+  const itemCount =
+    order.items?.reduce((total, item) => total + item.quantity, 0) ?? 0;
+  const createdAt = new Date(order.createdAt);
+
+  return (
+    <article className="surface overflow-hidden">
+      <div className="border-b border-slate-200 bg-white p-5">
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-2xl font-black text-ink">
+                Order {order.orderNumber}
+              </h2>
+              <span
+                className={`rounded-md border px-2 py-1 text-xs font-black uppercase ${statusClass(
+                  order.paymentStatus
+                )}`}
+              >
+                {order.paymentStatus}
+              </span>
+              <span
+                className={`rounded-md border px-2 py-1 text-xs font-black uppercase ${statusClass(
+                  order.fulfillmentStatus
+                )}`}
+              >
+                {order.fulfillmentStatus}
+              </span>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {createdAt.toLocaleString()} · {itemCount}{" "}
+              {itemCount === 1 ? "item" : "items"} · {order.customerEmail}
+            </p>
+          </div>
+          <div className="text-left lg:text-right">
+            <p className="text-xs font-black uppercase text-slate-500">Total</p>
+            <p className="text-2xl font-black text-ink">
+              {formatMoney(order.totalCents, order.currency)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-0 lg:grid-cols-[1.1fr_.9fr]">
+        <div className="border-b border-slate-200 p-5 lg:border-b-0 lg:border-r">
+          <p className="text-xs font-black uppercase text-slate-500">
+            Fulfillment items
+          </p>
+          <div className="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200">
+            {order.items?.length ? (
+              order.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-start"
+                >
+                  <div>
+                    <p className="font-black text-ink">{item.productName}</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {item.variantName} · SKU {item.sku}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Qty {item.quantity} ×{" "}
+                      {formatMoney(item.unitAmountCents, order.currency)}
+                    </p>
+                  </div>
+                  <p className="font-black text-ink">
+                    {formatMoney(item.lineTotalCents, order.currency)}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="p-4 text-sm text-slate-600">
+                No line items were captured for this order.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-5 p-5">
+          <div>
+            <p className="text-xs font-black uppercase text-slate-500">
+              Ship to
+            </p>
+            <p className="mt-2 whitespace-pre-line text-sm leading-6 text-ink">
+              {formatAddress(order.shippingAddress)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs font-black uppercase text-slate-500">
+              Payment breakdown
+            </p>
+            <div className="mt-2 grid gap-1 text-sm text-slate-700">
+              <div className="flex justify-between gap-4">
+                <span>Subtotal</span>
+                <span>
+                  {formatMoney(order.subtotalCents ?? 0, order.currency)}
+                </span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span>Shipping</span>
+                <span>
+                  {formatMoney(order.shippingCents ?? 0, order.currency)}
+                </span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span>Tax</span>
+                <span>{formatMoney(order.taxCents ?? 0, order.currency)}</span>
+              </div>
+              <div className="mt-2 flex justify-between gap-4 border-t border-slate-200 pt-2 font-black text-ink">
+                <span>Total</span>
+                <span>{formatMoney(order.totalCents, order.currency)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-black uppercase text-slate-500">
+              Stripe reference
+            </p>
+            <div className="mt-2 grid gap-1 text-xs text-slate-600">
+              <p className="break-all">
+                Session: {order.stripeCheckoutSessionId ?? "Not captured"}
+              </p>
+              <p className="break-all">
+                Payment: {order.paymentIntentId ?? "Not captured"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-200 bg-slate-50 p-5">
+        <form
+          id={`order-${order.id}`}
+          action={updateOrderFulfillmentAction}
+          className="grid gap-4 lg:grid-cols-[180px_1fr_auto]"
+        >
+          <input type="hidden" name="order_id" value={order.id} />
+          <label className="grid gap-2">
+            <span className="label">Fulfillment</span>
+            <select
+              className="field"
+              name="fulfillment_status"
+              defaultValue={order.fulfillmentStatus}
+            >
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
+            </select>
+          </label>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="grid gap-2">
+              <span className="label">Carrier</span>
+              <input
+                className="field"
+                name="tracking_carrier"
+                placeholder="UPS"
+                defaultValue={order.trackingCarrier ?? ""}
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="label">Tracking number</span>
+              <input
+                className="field"
+                name="tracking_number"
+                placeholder="1Z..."
+                defaultValue={order.trackingNumber ?? ""}
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="label">Tracking URL</span>
+              <input
+                className="field"
+                name="tracking_url"
+                placeholder="https://..."
+                defaultValue={order.trackingUrl ?? ""}
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-wrap items-end gap-2">
+            <button type="submit" className="button-secondary">
+              Save status
+            </button>
+          </div>
+        </form>
+
+        <form action={sendOrderEmailAction} className="mt-3">
+          <input type="hidden" name="order_id" value={order.id} />
+          <button type="submit" className="button-primary">
+            Resend order email
+          </button>
+        </form>
+      </div>
+    </article>
+  );
+}
 
 export default async function AdminOrdersPage({
   searchParams
@@ -80,110 +311,15 @@ export default async function AdminOrdersPage({
             create the order automatically.
           </p>
         </form>
-        <div className="surface overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                <tr>
-                  <th className="px-5 py-3 font-bold">Order</th>
-                  <th className="px-5 py-3 font-bold">Customer</th>
-                  <th className="px-5 py-3 font-bold">Payment</th>
-                  <th className="px-5 py-3 font-bold">Fulfillment</th>
-                  <th className="px-5 py-3 font-bold">Tracking</th>
-                  <th className="px-5 py-3 font-bold">Total</th>
-                  <th className="px-5 py-3 font-bold">Created</th>
-                  <th className="px-5 py-3 font-bold">Update</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-5 py-4 font-black text-ink">
-                      {order.orderNumber}
-                    </td>
-                    <td className="px-5 py-4">{order.customerEmail}</td>
-                    <td className="px-5 py-4">{order.paymentStatus}</td>
-                    <td className="px-5 py-4">
-                      <form
-                        id={`order-${order.id}`}
-                        action={updateOrderFulfillmentAction}
-                        className="grid gap-2"
-                      >
-                        <input type="hidden" name="order_id" value={order.id} />
-                        <select
-                          className="field min-w-36"
-                          name="fulfillment_status"
-                          defaultValue={order.fulfillmentStatus}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                          <option value="refunded">Refunded</option>
-                        </select>
-                      </form>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="grid min-w-56 gap-2">
-                        <input
-                          className="field"
-                          form={`order-${order.id}`}
-                          name="tracking_carrier"
-                          placeholder="Carrier"
-                          defaultValue={order.trackingCarrier ?? ""}
-                        />
-                        <input
-                          className="field"
-                          form={`order-${order.id}`}
-                          name="tracking_number"
-                          placeholder="Tracking number"
-                          defaultValue={order.trackingNumber ?? ""}
-                        />
-                        <input
-                          className="field"
-                          form={`order-${order.id}`}
-                          name="tracking_url"
-                          placeholder="Tracking URL"
-                          defaultValue={order.trackingUrl ?? ""}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 font-black text-ink">
-                      {formatMoney(order.totalCents, order.currency)}
-                    </td>
-                    <td className="px-5 py-4">
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="grid gap-2">
-                        <button
-                          form={`order-${order.id}`}
-                          type="submit"
-                          className="button-secondary px-3"
-                        >
-                          Save
-                        </button>
-                        <form action={sendOrderEmailAction}>
-                          <input type="hidden" name="order_id" value={order.id} />
-                          <button type="submit" className="button-primary px-3">
-                            Email
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {!orders.length ? (
-                  <tr>
-                    <td className="px-5 py-8 text-center text-slate-600" colSpan={8}>
-                      No paid orders yet.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
+        <div className="grid gap-5">
+          {orders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+          {!orders.length ? (
+            <div className="surface px-5 py-8 text-center text-slate-600">
+              No paid orders yet.
+            </div>
+          ) : null}
         </div>
       </section>
     </div>

@@ -78,12 +78,18 @@ export type OrderSummary = {
   status: string;
   paymentStatus: string;
   fulfillmentStatus: string;
+  stripeCheckoutSessionId?: string | null;
+  paymentIntentId?: string | null;
   trackingCarrier?: string | null;
   trackingNumber?: string | null;
   trackingUrl?: string | null;
   customerEmail: string;
+  subtotalCents?: number;
+  taxCents?: number;
+  shippingCents?: number;
   totalCents: number;
   currency: string;
+  shippingAddress?: Record<string, unknown> | null;
   createdAt: string;
   items?: Array<{
     id: string;

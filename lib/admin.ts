@@ -6,6 +6,8 @@ import type { CatalogProduct, OrderSummary } from "@/lib/types";
 type AdminOrderRow = {
   id: string;
   order_number: string;
+  stripe_checkout_session_id: string | null;
+  payment_intent_id: string | null;
   status: string;
   payment_status: string;
   fulfillment_status: string;
@@ -13,9 +15,22 @@ type AdminOrderRow = {
   tracking_number: string | null;
   tracking_url: string | null;
   customer_email: string;
+  subtotal_cents: number;
+  tax_cents: number;
+  shipping_cents: number;
   total_cents: number;
   currency: string;
+  shipping_address: Record<string, unknown> | null;
   created_at: string;
+  order_items?: Array<{
+    id: string;
+    product_name: string;
+    variant_name: string;
+    sku: string;
+    quantity: number;
+    unit_amount_cents: number;
+    line_total_cents: number;
+  }>;
 };
 
 export type AdminState = {
@@ -90,7 +105,12 @@ export async function getAdminOrders(): Promise<{
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id,order_number,status,payment_status,fulfillment_status,tracking_carrier,tracking_number,tracking_url,customer_email,total_cents,currency,created_at"
+      `
+      id,order_number,stripe_checkout_session_id,payment_intent_id,status,payment_status,fulfillment_status,
+      tracking_carrier,tracking_number,tracking_url,customer_email,subtotal_cents,tax_cents,shipping_cents,total_cents,
+      currency,shipping_address,created_at,
+      order_items(id,product_name,variant_name,sku,quantity,unit_amount_cents,line_total_cents)
+    `
     )
     .order("created_at", { ascending: false });
 
@@ -103,6 +123,8 @@ export async function getAdminOrders(): Promise<{
     orders: (data as AdminOrderRow[]).map((order) => ({
       id: order.id,
       orderNumber: order.order_number,
+      stripeCheckoutSessionId: order.stripe_checkout_session_id,
+      paymentIntentId: order.payment_intent_id,
       status: order.status,
       paymentStatus: order.payment_status,
       fulfillmentStatus: order.fulfillment_status,
@@ -110,9 +132,22 @@ export async function getAdminOrders(): Promise<{
       trackingNumber: order.tracking_number,
       trackingUrl: order.tracking_url,
       customerEmail: order.customer_email,
+      subtotalCents: order.subtotal_cents,
+      taxCents: order.tax_cents,
+      shippingCents: order.shipping_cents,
       totalCents: order.total_cents,
       currency: order.currency,
-      createdAt: order.created_at
+      shippingAddress: order.shipping_address,
+      createdAt: order.created_at,
+      items: order.order_items?.map((item) => ({
+        id: item.id,
+        productName: item.product_name,
+        variantName: item.variant_name,
+        sku: item.sku,
+        quantity: item.quantity,
+        unitAmountCents: item.unit_amount_cents,
+        lineTotalCents: item.line_total_cents
+      }))
     }))
   };
 }
