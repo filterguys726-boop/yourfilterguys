@@ -136,6 +136,57 @@ async function notifyRecoveredOrder(orderId: string) {
   }
 }
 
+type RecoveredOrderItem = {
+  product_id: string;
+  variant_id: string;
+  sku: string;
+  product_name: string;
+  variant_name: string;
+  quantity: number;
+  unit_amount_cents: number;
+  line_total_cents: number;
+};
+
+async function insertOrderItemsWithFallback(
+  serviceSupabase: ReturnType<typeof createServiceSupabaseClient>,
+  orderId: string,
+  items: RecoveredOrderItem[]
+) {
+  const rows = items.map((item) => ({
+    order_id: orderId,
+    product_id: item.product_id || null,
+    variant_id: item.variant_id || null,
+    product_name: item.product_name,
+    variant_name: item.variant_name,
+    sku: item.sku,
+    quantity: item.quantity,
+    unit_amount_cents: item.unit_amount_cents,
+    line_total_cents: item.line_total_cents
+  }));
+  const { error } = await serviceSupabase.from("order_items").insert(rows);
+
+  if (!error) {
+    return;
+  }
+
+  console.error("Recovered order item insert failed, retrying without FK references", {
+    orderId,
+    error
+  });
+
+  const { error: fallbackError } = await serviceSupabase.from("order_items").insert(
+    rows.map((row) => ({
+      ...row,
+      product_id: null,
+      variant_id: null
+    }))
+  );
+
+  if (fallbackError) {
+    throw fallbackError;
+  }
+}
+
 export async function recoverStripeOrderAction(formData: FormData) {
   await assertAdmin();
 
@@ -236,25 +287,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
       }
 
       if (!existingItems?.length) {
-        const { error: orderItemsError } = await serviceSupabase
-          .from("order_items")
-          .insert(
-            items.map((item) => ({
-              order_id: orderId,
-              product_id: item.product_id || null,
-              variant_id: item.variant_id || null,
-              product_name: item.product_name,
-              variant_name: item.variant_name,
-              sku: item.sku,
-              quantity: item.quantity,
-              unit_amount_cents: item.unit_amount_cents,
-              line_total_cents: item.line_total_cents
-            }))
-          );
-
-        if (orderItemsError) {
-          throw orderItemsError;
-        }
+        await insertOrderItemsWithFallback(serviceSupabase, orderId, items);
 
         console.info("Recovered missing order line items", {
           orderId,
@@ -306,25 +339,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
     }
 
     const orderId = order.id as string;
-    const { error: orderItemsError } = await serviceSupabase
-      .from("order_items")
-      .insert(
-        items.map((item) => ({
-          order_id: orderId,
-          product_id: item.product_id || null,
-          variant_id: item.variant_id || null,
-          product_name: item.product_name,
-          variant_name: item.variant_name,
-          sku: item.sku,
-          quantity: item.quantity,
-          unit_amount_cents: item.unit_amount_cents,
-          line_total_cents: item.line_total_cents
-        }))
-      );
-
-    if (orderItemsError) {
-      throw orderItemsError;
-    }
+    await insertOrderItemsWithFallback(serviceSupabase, orderId, items);
 
     for (const item of items) {
       if (!item.variant_id) {
@@ -338,7 +353,12 @@ export async function recoverStripeOrderAction(formData: FormData) {
         .single();
 
       if (variantError) {
-        throw variantError;
+        console.error("Recovered order inventory variant lookup failed", {
+          orderId,
+          variantId: item.variant_id,
+          error: variantError
+        });
+        continue;
       }
 
       const nextStock = Math.max(
@@ -351,7 +371,12 @@ export async function recoverStripeOrderAction(formData: FormData) {
         .eq("id", item.variant_id);
 
       if (stockError) {
-        throw stockError;
+        console.error("Recovered order stock update failed", {
+          orderId,
+          variantId: item.variant_id,
+          error: stockError
+        });
+        continue;
       }
 
       const { error: movementError } = await serviceSupabase
@@ -366,7 +391,11 @@ export async function recoverStripeOrderAction(formData: FormData) {
         });
 
       if (movementError) {
-        throw movementError;
+        console.error("Recovered order inventory movement insert failed", {
+          orderId,
+          variantId: item.variant_id,
+          error: movementError
+        });
       }
     }
 

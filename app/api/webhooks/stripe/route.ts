@@ -142,7 +142,12 @@ async function processCheckoutDirectly(
       .single();
 
     if (variantError) {
-      throw variantError;
+      console.error("Inventory variant lookup failed after paid checkout", {
+        orderId,
+        variantId: item.variant_id,
+        error: variantError
+      });
+      continue;
     }
 
     const nextStock = Math.max(
@@ -155,7 +160,12 @@ async function processCheckoutDirectly(
       .eq("id", item.variant_id);
 
     if (stockError) {
-      throw stockError;
+      console.error("Inventory stock update failed after paid checkout", {
+        orderId,
+        variantId: item.variant_id,
+        error: stockError
+      });
+      continue;
     }
 
     const { error: movementError } = await supabase
@@ -170,7 +180,11 @@ async function processCheckoutDirectly(
       });
 
     if (movementError) {
-      throw movementError;
+      console.error("Inventory movement insert failed after paid checkout", {
+        orderId,
+        variantId: item.variant_id,
+        error: movementError
+      });
     }
   }
 
@@ -204,8 +218,7 @@ async function ensureOrderItems(
     return;
   }
 
-  const { error: orderItemsError } = await supabase.from("order_items").insert(
-    items.map((item) => ({
+  const rows = items.map((item) => ({
       order_id: orderId,
       product_id: item.product_id || null,
       variant_id: item.variant_id || null,
@@ -215,11 +228,26 @@ async function ensureOrderItems(
       quantity: item.quantity,
       unit_amount_cents: item.unit_amount_cents,
       line_total_cents: item.line_total_cents
-    }))
-  );
+    }));
+  const { error: orderItemsError } = await supabase.from("order_items").insert(rows);
 
   if (orderItemsError) {
-    throw orderItemsError;
+    console.error("Order line item insert failed, retrying without FK references", {
+      orderId,
+      error: orderItemsError
+    });
+
+    const { error: fallbackError } = await supabase.from("order_items").insert(
+      rows.map((row) => ({
+        ...row,
+        product_id: null,
+        variant_id: null
+      }))
+    );
+
+    if (fallbackError) {
+      throw fallbackError;
+    }
   }
 
   console.info("Inserted order line items", {
