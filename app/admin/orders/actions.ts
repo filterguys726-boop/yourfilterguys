@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
+import { adminEmails } from "@/lib/env";
 import { sendOrderCreatedNotifications } from "@/lib/order-notifications";
 import { createServerSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase";
 import { sendOrderStatusEmail } from "@/lib/order-emails";
@@ -21,6 +22,10 @@ async function assertAdmin() {
 
   if (!user) {
     throw new Error("Login required.");
+  }
+
+  if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+    return;
   }
 
   const { data } = await supabase

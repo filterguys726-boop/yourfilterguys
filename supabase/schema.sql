@@ -203,11 +203,16 @@ language sql
 security definer
 set search_path = public
 as $$
-  select exists (
-    select 1
-    from public.admin_users
-    where user_id = auth.uid()
-  );
+  select
+    lower(coalesce(auth.jwt() ->> 'email', '')) in (
+      'maiko.ssb@gmail.com',
+      'filterguys726@gmail.com'
+    )
+    or exists (
+      select 1
+      from public.admin_users
+      where user_id = auth.uid()
+    );
 $$;
 
 create or replace function public.handle_new_user()
@@ -532,6 +537,12 @@ using (
   or public.is_admin()
 );
 
+drop policy if exists "Admins manage orders" on public.orders;
+create policy "Admins manage orders"
+on public.orders for all
+using (public.is_admin())
+with check (public.is_admin());
+
 drop policy if exists "Customers read own order items" on public.order_items;
 create policy "Customers read own order items"
 on public.order_items for select
@@ -547,6 +558,12 @@ using (
       )
   )
 );
+
+drop policy if exists "Admins manage order items" on public.order_items;
+create policy "Admins manage order items"
+on public.order_items for all
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Admins read inventory movements" on public.inventory_movements;
 create policy "Admins read inventory movements"

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { adminEmails } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase";
 
 async function assertAdmin() {
@@ -17,6 +18,10 @@ async function assertAdmin() {
 
   if (!user) {
     throw new Error("Login required.");
+  }
+
+  if (user.email && adminEmails.includes(user.email.toLowerCase())) {
+    return supabase;
   }
 
   const { data } = await supabase
