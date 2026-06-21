@@ -2,6 +2,7 @@ import { AdminGate } from "@/components/admin-gate";
 import { AdminNav } from "@/components/admin-nav";
 import {
   recoverStripeOrderAction,
+  sendOrderEmailAction,
   updateOrderFulfillmentAction
 } from "@/app/admin/orders/actions";
 import { getAdminOrders } from "@/lib/admin";
@@ -11,6 +12,7 @@ type AdminOrdersPageProps = {
   searchParams?: Promise<{
     error?: string;
     recovered?: string;
+    emailed?: string;
     updated?: string;
   }>;
 };
@@ -51,6 +53,11 @@ export default async function AdminOrdersPage({
         {query?.updated ? (
           <div className="mb-6 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-bay">
             Order updated and customer status email queued.
+          </div>
+        ) : null}
+        {query?.emailed ? (
+          <div className="mb-6 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-bay">
+            Order notification email attempted. Check Resend activity and inboxes.
           </div>
         ) : null}
         <form action={recoverStripeOrderAction} className="surface mb-6 p-5">
@@ -149,13 +156,21 @@ export default async function AdminOrdersPage({
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-4">
-                      <button
-                        form={`order-${order.id}`}
-                        type="submit"
-                        className="button-secondary px-3"
-                      >
-                        Save
-                      </button>
+                      <div className="grid gap-2">
+                        <button
+                          form={`order-${order.id}`}
+                          type="submit"
+                          className="button-secondary px-3"
+                        >
+                          Save
+                        </button>
+                        <form action={sendOrderEmailAction}>
+                          <input type="hidden" name="order_id" value={order.id} />
+                          <button type="submit" className="button-primary px-3">
+                            Email
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 ))}

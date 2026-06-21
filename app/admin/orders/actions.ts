@@ -60,6 +60,17 @@ function orderUpdatedPath(error?: unknown) {
   return `/admin/orders?error=${encodeURIComponent(message)}`;
 }
 
+function orderEmailPath(error?: unknown) {
+  if (!error) {
+    return "/admin/orders?emailed=1";
+  }
+
+  const message =
+    error instanceof Error ? error.message : "The order email could not be sent.";
+
+  return `/admin/orders?error=${encodeURIComponent(message)}`;
+}
+
 function splitMetadataIds(value: string | undefined) {
   return (value ?? "")
     .split(",")
@@ -396,4 +407,19 @@ export async function updateOrderFulfillmentAction(formData: FormData) {
 
   revalidatePath("/admin/orders");
   redirect(orderUpdatedPath());
+}
+
+export async function sendOrderEmailAction(formData: FormData) {
+  await assertAdmin();
+
+  const orderId = textValue(formData, "order_id");
+
+  try {
+    await sendOrderCreatedNotifications(createServiceSupabaseClient(), orderId);
+  } catch (error) {
+    redirect(orderEmailPath(error));
+  }
+
+  revalidatePath("/admin/orders");
+  redirect(orderEmailPath());
 }

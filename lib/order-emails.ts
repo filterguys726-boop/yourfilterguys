@@ -28,6 +28,12 @@ export type OrderEmailData = {
   items: OrderEmailItem[];
 };
 
+function logEmailFailure(label: string, result: PromiseSettledResult<unknown>) {
+  if (result.status === "rejected") {
+    console.error(`${label} failed`, result.reason);
+  }
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -203,6 +209,9 @@ Open the admin dashboard: https://yourfilterguys.com/admin/orders`;
       : Promise.resolve(null)
   ]);
 
+  logEmailFailure("Customer order confirmation email", customerResult);
+  logEmailFailure("Admin order notification email", adminResult);
+
   return {
     customerSent: shouldSendCustomer && customerResult.status === "fulfilled",
     adminSent:
@@ -254,5 +263,7 @@ Questions? Reply to this email or contact support@yourfilterguys.com.`;
     subject,
     html,
     text
-  }).catch(() => null);
+  }).catch((error) => {
+    console.error("Customer order status email failed", error);
+  });
 }
