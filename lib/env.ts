@@ -18,3 +18,9 @@ export const stripeShippingRates = [
 ].filter(Boolean) as string[];
 
 export const hasStripeEnv = Boolean(stripeSecretKey);
+
+export const resendApiKey = process.env.RESEND_API_KEY ?? "";
+export const orderFromEmail =
+  process.env.ORDER_FROM_EMAIL ?? "Your Filter Guys <orders@yourfilterguys.com>";
+export const adminOrderEmail = process.env.ADMIN_ORDER_EMAIL ?? "";
+export const hasEmailEnv = Boolean(resendApiKey && orderFromEmail);

@@ -78,6 +78,9 @@ export type OrderSummary = {
   status: string;
   paymentStatus: string;
   fulfillmentStatus: string;
+  trackingCarrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
   customerEmail: string;
   totalCents: number;
   currency: string;

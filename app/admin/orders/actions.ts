@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
+import { sendOrderCreatedNotifications } from "@/lib/order-notifications";
 import { createServerSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase";
+import { sendOrderStatusEmail } from "@/lib/order-emails";
 import { getStripe } from "@/lib/stripe";
 
 async function assertAdmin() {
@@ -43,6 +45,17 @@ function ordersPath(error?: unknown) {
 
   const message =
     error instanceof Error ? error.message : "The Stripe order could not be recovered.";
+
+  return `/admin/orders?error=${encodeURIComponent(message)}`;
+}
+
+function orderUpdatedPath(error?: unknown) {
+  if (!error) {
+    return "/admin/orders?updated=1";
+  }
+
+  const message =
+    error instanceof Error ? error.message : "The order could not be updated.";
 
   return `/admin/orders?error=${encodeURIComponent(message)}`;
 }
@@ -87,6 +100,14 @@ function getProductMetadata(product: string | Stripe.Product | Stripe.DeletedPro
   return product.metadata;
 }
 
+async function notifyRecoveredOrder(orderId: string) {
+  try {
+    await sendOrderCreatedNotifications(createServiceSupabaseClient(), orderId);
+  } catch (error) {
+    console.error("Recovered order notification failed", error);
+  }
+}
+
 export async function recoverStripeOrderAction(formData: FormData) {
   await assertAdmin();
 
@@ -116,6 +137,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
     }
 
     if (existingOrder) {
+      await notifyRecoveredOrder(existingOrder.id as string);
       revalidatePath("/admin/orders");
       redirect(ordersPath());
     }
@@ -277,10 +299,101 @@ export async function recoverStripeOrderAction(formData: FormData) {
       }
     }
 
+    await notifyRecoveredOrder(orderId);
     revalidatePath("/admin/orders");
   } catch (error) {
     redirect(ordersPath(error));
   }
 
   redirect(ordersPath());
+}
+
+type OrderItemRow = {
+  product_name: string;
+  variant_name: string;
+  sku: string;
+  quantity: number;
+  unit_amount_cents: number;
+  line_total_cents: number;
+};
+
+export async function updateOrderFulfillmentAction(formData: FormData) {
+  await assertAdmin();
+
+  const orderId = textValue(formData, "order_id");
+  const fulfillmentStatus = textValue(formData, "fulfillment_status");
+  const trackingCarrier = textValue(formData, "tracking_carrier");
+  const trackingNumber = textValue(formData, "tracking_number");
+  const trackingUrl = textValue(formData, "tracking_url");
+  const allowedStatuses = new Set([
+    "pending",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "refunded"
+  ]);
+
+  if (!allowedStatuses.has(fulfillmentStatus)) {
+    redirect(orderUpdatedPath(new Error("Choose a valid fulfillment status.")));
+  }
+
+  try {
+    const supabase = createServiceSupabaseClient();
+    const { data: order, error: updateError } = await supabase
+      .from("orders")
+      .update({
+        fulfillment_status: fulfillmentStatus,
+        tracking_carrier: trackingCarrier || null,
+        tracking_number: trackingNumber || null,
+        tracking_url: trackingUrl || null,
+        shipped_at: fulfillmentStatus === "shipped" ? new Date().toISOString() : null
+      })
+      .eq("id", orderId)
+      .select(
+        "id,order_number,customer_email,currency,subtotal_cents,tax_cents,shipping_cents,total_cents,shipping_address,fulfillment_status,tracking_carrier,tracking_number,tracking_url"
+      )
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    const { data: items, error: itemsError } = await supabase
+      .from("order_items")
+      .select("product_name,variant_name,sku,quantity,unit_amount_cents,line_total_cents")
+      .eq("order_id", orderId);
+
+    if (itemsError) {
+      throw itemsError;
+    }
+
+    await sendOrderStatusEmail({
+      orderNumber: order.order_number,
+      customerEmail: order.customer_email,
+      currency: order.currency,
+      subtotalCents: order.subtotal_cents,
+      taxCents: order.tax_cents,
+      shippingCents: order.shipping_cents,
+      totalCents: order.total_cents,
+      fulfillmentStatus: order.fulfillment_status,
+      shippingAddress: order.shipping_address,
+      trackingCarrier: order.tracking_carrier,
+      trackingNumber: order.tracking_number,
+      trackingUrl: order.tracking_url,
+      items: ((items ?? []) as OrderItemRow[]).map((item) => ({
+        productName: item.product_name,
+        variantName: item.variant_name,
+        sku: item.sku,
+        quantity: item.quantity,
+        unitAmountCents: item.unit_amount_cents,
+        lineTotalCents: item.line_total_cents
+      }))
+    });
+  } catch (error) {
+    redirect(orderUpdatedPath(error));
+  }
+
+  revalidatePath("/admin/orders");
+  redirect(orderUpdatedPath());
 }

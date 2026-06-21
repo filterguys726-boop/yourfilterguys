@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { stripeWebhookSecret } from "@/lib/env";
+import { sendOrderCreatedNotifications } from "@/lib/order-notifications";
 import { createServiceSupabaseClient } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
 
@@ -70,10 +71,18 @@ type DirectCheckoutOrderInput = {
   items: WebhookOrderItem[];
 };
 
+async function notifyPaidOrder(supabase: SupabaseClient, orderId: string) {
+  try {
+    await sendOrderCreatedNotifications(supabase, orderId);
+  } catch (error) {
+    console.error("Order notification email failed", error);
+  }
+}
+
 async function processCheckoutDirectly(
   supabase: SupabaseClient,
   input: DirectCheckoutOrderInput
-) {
+): Promise<string> {
   const { data: existingOrder, error: existingOrderError } = await supabase
     .from("orders")
     .select("id")
@@ -295,7 +304,7 @@ export async function POST(request: Request) {
     items
   };
 
-  const { error } = await supabase.rpc("process_paid_checkout", {
+  const { data: orderId, error } = await supabase.rpc("process_paid_checkout", {
     session_id_input: session.id,
     stripe_customer_id_input:
       typeof session.customer === "string" ? session.customer : null,
@@ -314,7 +323,8 @@ export async function POST(request: Request) {
 
   if (error) {
     try {
-      await processCheckoutDirectly(supabase, orderInput);
+      const directOrderId = await processCheckoutDirectly(supabase, orderInput);
+      await notifyPaidOrder(supabase, directOrderId);
     } catch (directError) {
       return NextResponse.json(
         {
@@ -324,6 +334,8 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+  } else if (orderId) {
+    await notifyPaidOrder(supabase, orderId as string);
   }
 
   return NextResponse.json({ received: true });

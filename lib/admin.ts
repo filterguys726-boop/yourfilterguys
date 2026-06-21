@@ -9,6 +9,9 @@ type AdminOrderRow = {
   status: string;
   payment_status: string;
   fulfillment_status: string;
+  tracking_carrier: string | null;
+  tracking_number: string | null;
+  tracking_url: string | null;
   customer_email: string;
   total_cents: number;
   currency: string;
@@ -87,7 +90,7 @@ export async function getAdminOrders(): Promise<{
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id,order_number,status,payment_status,fulfillment_status,customer_email,total_cents,currency,created_at"
+      "id,order_number,status,payment_status,fulfillment_status,tracking_carrier,tracking_number,tracking_url,customer_email,total_cents,currency,created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -103,6 +106,9 @@ export async function getAdminOrders(): Promise<{
       status: order.status,
       paymentStatus: order.payment_status,
       fulfillmentStatus: order.fulfillment_status,
+      trackingCarrier: order.tracking_carrier,
+      trackingNumber: order.tracking_number,
+      trackingUrl: order.tracking_url,
       customerEmail: order.customer_email,
       totalCents: order.total_cents,
       currency: order.currency,
