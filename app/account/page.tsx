@@ -52,6 +52,14 @@ export default async function AccountPage() {
                       {new Date(order.createdAt).toLocaleDateString()} ·{" "}
                       {order.fulfillmentStatus}
                     </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {order.items?.length
+                        ? order.items
+                            .slice(0, 2)
+                            .map((item) => `${item.quantity}x ${item.productName}`)
+                            .join(", ")
+                        : "Product details unavailable for this order."}
+                    </p>
                   </div>
                   <p className="font-black text-ink">
                     {formatMoney(order.totalCents, order.currency)}
@@ -80,7 +88,10 @@ export default async function AccountPage() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-600">No purchased products yet.</p>
+              <p className="text-sm leading-6 text-slate-600">
+                Purchased products appear here when order line items are
+                available. Older recovered orders may only show in order history.
+              </p>
             )}
           </div>
         </aside>

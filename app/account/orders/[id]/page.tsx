@@ -49,20 +49,31 @@ export default async function AccountOrderPage({ params }: OrderPageProps) {
             <h2 className="text-2xl font-black text-ink">Items</h2>
           </div>
           <div className="divide-y divide-slate-200">
-            {order.items?.map((item) => (
-              <div key={item.id} className="grid gap-3 p-5 sm:grid-cols-[1fr_auto]">
-                <div>
-                  <p className="font-black text-ink">{item.productName}</p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    {item.variantName} · {item.sku}
+            {order.items?.length ? (
+              order.items.map((item) => (
+                <div key={item.id} className="grid gap-3 p-5 sm:grid-cols-[1fr_auto]">
+                  <div>
+                    <p className="font-black text-ink">{item.productName}</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {item.variantName} · {item.sku}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">Qty {item.quantity}</p>
+                  </div>
+                  <p className="font-black text-ink">
+                    {formatMoney(item.lineTotalCents, order.currency)}
                   </p>
-                  <p className="mt-2 text-sm text-slate-600">Qty {item.quantity}</p>
                 </div>
-                <p className="font-black text-ink">
-                  {formatMoney(item.lineTotalCents, order.currency)}
+              ))
+            ) : (
+              <div className="p-5">
+                <p className="font-black text-ink">Item details unavailable</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  This order exists and payment was captured, but line-item rows
+                  were not available when it was created. For fulfillment, use
+                  the Stripe receipt or admin order dashboard details.
                 </p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 

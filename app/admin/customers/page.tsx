@@ -158,6 +158,14 @@ export default async function AdminCustomersPage({
                       {new Date(order.createdAt).toLocaleString()} ·{" "}
                       {order.paymentStatus} · {order.fulfillmentStatus}
                     </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {order.items?.length
+                        ? order.items
+                            .slice(0, 2)
+                            .map((item) => `${item.quantity}x ${item.productName}`)
+                            .join(", ")
+                        : "Line-item details unavailable for this order."}
+                    </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-3 md:justify-end">
                     <p className="font-black text-ink">
@@ -207,9 +215,18 @@ export default async function AdminCustomersPage({
                 </div>
               ))}
               {!purchasedItems.length ? (
-                <p className="p-5 text-sm text-slate-600">
-                  No purchased product rows are available yet.
-                </p>
+                <div className="p-5">
+                  <p className="font-black text-ink">
+                    No purchased product rows available
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    This section lists individual line items across the
+                    customer&apos;s orders. If the customer has orders above but
+                    this section is empty, those orders were created before
+                    order item rows were available or need to be recovered from
+                    Stripe.
+                  </p>
+                </div>
               ) : null}
             </div>
           </section>
