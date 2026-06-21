@@ -9,7 +9,7 @@ import {
   Truck,
   Wrench
 } from "lucide-react";
-import { ProductCard } from "@/components/product-card";
+import { FeaturedPartsSlider } from "@/components/featured-parts-slider";
 import { getCategories, getProducts } from "@/lib/catalog";
 
 export default async function HomePage() {
@@ -142,10 +142,8 @@ export default async function HomePage() {
               <ArrowRight aria-hidden className="h-4 w-4" />
             </Link>
           </div>
-          <div className="mt-7 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {featured.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+          <div className="mt-7">
+            <FeaturedPartsSlider products={featured} />
           </div>
         </div>
       </section>

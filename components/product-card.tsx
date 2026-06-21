@@ -33,12 +33,18 @@ function getInventoryLabel(product: CatalogProduct) {
   return "Sold out";
 }
 
-export function ProductCard({ product }: { product: CatalogProduct }) {
+export function ProductCard({
+  product,
+  className = ""
+}: {
+  product: CatalogProduct;
+  className?: string;
+}) {
   const lowestPrice = getLowestPrice(product);
   const galleryCount = product.imageGallery?.length ?? 1;
 
   return (
-    <article className="surface flex h-full flex-col overflow-hidden">
+    <article className={`surface flex h-full flex-col overflow-hidden ${className}`}>
       <Link href={`/products/${product.slug}`} className="relative block bg-white">
         <Image
           src={product.imageUrl}
