@@ -13,8 +13,14 @@ export async function sendTransactionalEmail(input: SendEmailInput) {
     .map((recipient) => recipient.trim())
     .filter(Boolean);
 
-  if (!hasEmailEnv || !cleanRecipients.length) {
-    return { skipped: true };
+  if (!hasEmailEnv) {
+    throw new Error(
+      "Resend is not configured. Add RESEND_API_KEY and ORDER_FROM_EMAIL in Vercel, then redeploy."
+    );
+  }
+
+  if (!cleanRecipients.length) {
+    throw new Error("No email recipient was provided.");
   }
 
   const response = await fetch("https://api.resend.com/emails", {

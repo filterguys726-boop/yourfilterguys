@@ -44,6 +44,7 @@ export async function POST(request: Request) {
 
   const stripe = getStripe();
   const cartReference = globalThis.crypto.randomUUID();
+  const buyerEmail = user?.email ?? body.email;
 
   try {
     const checkoutItems = requestedItems.map((requestedItem) => {
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      customer_email: user?.email ?? body.email,
+      customer_email: buyerEmail,
       line_items: checkoutItems.map((item) => ({
         quantity: item.quantity,
         price_data: {
@@ -114,6 +115,7 @@ export async function POST(request: Request) {
       cancel_url: `${siteUrl}/checkout/cancel`,
       metadata,
       payment_intent_data: {
+        receipt_email: buyerEmail,
         metadata
       }
     });

@@ -19,8 +19,6 @@ type OrderNotificationRow = {
   tracking_carrier: string | null;
   tracking_number: string | null;
   tracking_url: string | null;
-  customer_confirmation_sent_at: string | null;
-  admin_notification_sent_at: string | null;
 };
 
 type OrderNotificationItemRow = {
@@ -69,7 +67,7 @@ export async function sendOrderCreatedNotifications(
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select(
-      "id,order_number,customer_email,currency,subtotal_cents,tax_cents,shipping_cents,total_cents,fulfillment_status,shipping_address,tracking_carrier,tracking_number,tracking_url,customer_confirmation_sent_at,admin_notification_sent_at"
+      "id,order_number,customer_email,currency,subtotal_cents,tax_cents,shipping_cents,total_cents,fulfillment_status,shipping_address,tracking_carrier,tracking_number,tracking_url"
     )
     .eq("id", orderId)
     .single();
@@ -79,12 +77,6 @@ export async function sendOrderCreatedNotifications(
   }
 
   const typedOrder = order as OrderNotificationRow;
-  const sendCustomer = !typedOrder.customer_confirmation_sent_at;
-  const sendAdmin = !typedOrder.admin_notification_sent_at;
-
-  if (!sendCustomer && !sendAdmin) {
-    return;
-  }
 
   const { data: items, error: itemsError } = await supabase
     .from("order_items")
@@ -96,24 +88,25 @@ export async function sendOrderCreatedNotifications(
   }
 
   const result = await sendOrderConfirmationEmails(
-    mapOrderEmailData(typedOrder, (items ?? []) as OrderNotificationItemRow[]),
-    { sendCustomer, sendAdmin }
+    mapOrderEmailData(typedOrder, (items ?? []) as OrderNotificationItemRow[])
   );
-  const update: {
-    customer_confirmation_sent_at?: string;
-    admin_notification_sent_at?: string;
-  } = {};
-  const now = new Date().toISOString();
 
-  if (result.customerSent && !typedOrder.customer_confirmation_sent_at) {
-    update.customer_confirmation_sent_at = now;
+  if (!result.customerSent || !result.adminSent) {
+    throw new Error(
+      "One or more order emails failed. Check RESEND_API_KEY, ORDER_FROM_EMAIL, ADMIN_ORDER_EMAIL, and Resend logs."
+    );
   }
 
-  if (result.adminSent && !typedOrder.admin_notification_sent_at) {
-    update.admin_notification_sent_at = now;
-  }
-
-  if (Object.keys(update).length) {
-    await supabase.from("orders").update(update).eq("id", orderId);
-  }
+  await supabase
+    .from("orders")
+    .update({
+      customer_confirmation_sent_at: new Date().toISOString(),
+      admin_notification_sent_at: new Date().toISOString()
+    })
+    .eq("id", orderId)
+    .then(({ error }) => {
+      if (error) {
+        console.error("Order email timestamp update failed", error);
+      }
+    });
 }
