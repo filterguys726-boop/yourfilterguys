@@ -570,6 +570,12 @@ create policy "Admins read inventory movements"
 on public.inventory_movements for select
 using (public.is_admin());
 
+drop policy if exists "Admins manage inventory movements" on public.inventory_movements;
+create policy "Admins manage inventory movements"
+on public.inventory_movements for all
+using (public.is_admin())
+with check (public.is_admin());
+
 grant execute on function public.adjust_inventory(uuid, integer, text) to authenticated;
 revoke execute on function public.process_paid_checkout(
   text, text, text, uuid, text, text, integer, integer, integer, integer, jsonb, jsonb

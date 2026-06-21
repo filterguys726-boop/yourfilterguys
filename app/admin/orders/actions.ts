@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { adminEmails } from "@/lib/env";
 import { sendOrderCreatedNotifications } from "@/lib/order-notifications";
 import { createServerSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase";
@@ -25,7 +26,7 @@ async function assertAdmin() {
   }
 
   if (user.email && adminEmails.includes(user.email.toLowerCase())) {
-    return;
+    return supabase;
   }
 
   const { data } = await supabase
@@ -37,6 +38,8 @@ async function assertAdmin() {
   if (!data) {
     throw new Error("Admin access required.");
   }
+
+  return supabase;
 }
 
 function textValue(formData: FormData, key: string) {
@@ -133,9 +136,9 @@ function getProductMetadata(product: string | Stripe.Product | Stripe.DeletedPro
   return product.metadata;
 }
 
-async function notifyRecoveredOrder(orderId: string) {
+async function notifyRecoveredOrder(supabase: SupabaseClient, orderId: string) {
   try {
-    await sendOrderCreatedNotifications(createServiceSupabaseClient(), orderId);
+    await sendOrderCreatedNotifications(supabase, orderId);
   } catch (error) {
     console.error("Recovered order notification failed", error);
   }
@@ -153,7 +156,7 @@ type RecoveredOrderItem = {
 };
 
 async function insertOrderItemsWithFallback(
-  serviceSupabase: ReturnType<typeof createServiceSupabaseClient>,
+  supabase: SupabaseClient,
   orderId: string,
   items: RecoveredOrderItem[]
 ) {
@@ -168,7 +171,7 @@ async function insertOrderItemsWithFallback(
     unit_amount_cents: item.unit_amount_cents,
     line_total_cents: item.line_total_cents
   }));
-  const { error } = await serviceSupabase.from("order_items").insert(rows);
+  const { error } = await supabase.from("order_items").insert(rows);
 
   if (!error) {
     return;
@@ -179,7 +182,7 @@ async function insertOrderItemsWithFallback(
     error
   });
 
-  const { error: fallbackError } = await serviceSupabase.from("order_items").insert(
+  const { error: fallbackError } = await supabase.from("order_items").insert(
     rows.map((row) => ({
       ...row,
       product_id: null,
@@ -193,7 +196,7 @@ async function insertOrderItemsWithFallback(
 }
 
 export async function recoverStripeOrderAction(formData: FormData) {
-  await assertAdmin();
+  const adminSupabase = await assertAdmin();
 
   const sessionId = textValue(formData, "session_id");
 
@@ -210,7 +213,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
       throw new Error("That Stripe Checkout Session is not paid yet.");
     }
 
-    const { data: existingOrder, error: existingOrderError } = await serviceSupabase
+    const { data: existingOrder, error: existingOrderError } = await adminSupabase
       .from("orders")
       .select("id")
       .eq("stripe_checkout_session_id", session.id)
@@ -281,7 +284,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
     if (existingOrder) {
       const orderId = existingOrder.id as string;
       const { data: existingItems, error: existingItemsError } =
-        await serviceSupabase
+        await adminSupabase
           .from("order_items")
           .select("id")
           .eq("order_id", orderId)
@@ -292,7 +295,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
       }
 
       if (!existingItems?.length) {
-        await insertOrderItemsWithFallback(serviceSupabase, orderId, items);
+        await insertOrderItemsWithFallback(adminSupabase, orderId, items);
 
         console.info("Recovered missing order line items", {
           orderId,
@@ -300,7 +303,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
         });
       }
 
-      await notifyRecoveredOrder(orderId);
+      await notifyRecoveredOrder(adminSupabase, orderId);
       revalidatePath("/admin/orders");
       redirect(ordersPath());
     }
@@ -314,7 +317,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
       session.total_details?.amount_tax ??
       Math.max(totalCents - subtotalCents - shippingCents, 0);
 
-    const { data: order, error: orderError } = await serviceSupabase
+    const { data: order, error: orderError } = await adminSupabase
       .from("orders")
       .insert({
         stripe_checkout_session_id: session.id,
@@ -344,14 +347,14 @@ export async function recoverStripeOrderAction(formData: FormData) {
     }
 
     const orderId = order.id as string;
-    await insertOrderItemsWithFallback(serviceSupabase, orderId, items);
+    await insertOrderItemsWithFallback(adminSupabase, orderId, items);
 
     for (const item of items) {
       if (!item.variant_id) {
         continue;
       }
 
-      const { data: variant, error: variantError } = await serviceSupabase
+      const { data: variant, error: variantError } = await adminSupabase
         .from("product_variants")
         .select("stock_quantity")
         .eq("id", item.variant_id)
@@ -370,7 +373,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
         0,
         Number(variant.stock_quantity ?? 0) - item.quantity
       );
-      const { error: stockError } = await serviceSupabase
+      const { error: stockError } = await adminSupabase
         .from("product_variants")
         .update({ stock_quantity: nextStock })
         .eq("id", item.variant_id);
@@ -384,7 +387,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
         continue;
       }
 
-      const { error: movementError } = await serviceSupabase
+      const { error: movementError } = await adminSupabase
         .from("inventory_movements")
         .insert({
           variant_id: item.variant_id,
@@ -404,7 +407,7 @@ export async function recoverStripeOrderAction(formData: FormData) {
       }
     }
 
-    await notifyRecoveredOrder(orderId);
+    await notifyRecoveredOrder(adminSupabase, orderId);
     revalidatePath("/admin/orders");
   } catch (error) {
     redirect(ordersPath(error));
@@ -423,7 +426,7 @@ type OrderItemRow = {
 };
 
 export async function updateOrderFulfillmentAction(formData: FormData) {
-  await assertAdmin();
+  const supabase = await assertAdmin();
 
   const orderId = textValue(formData, "order_id");
   const fulfillmentStatus = textValue(formData, "fulfillment_status");
@@ -444,7 +447,6 @@ export async function updateOrderFulfillmentAction(formData: FormData) {
   }
 
   try {
-    const supabase = createServiceSupabaseClient();
     const { data: order, error: updateError } = await supabase
       .from("orders")
       .update({
@@ -504,12 +506,12 @@ export async function updateOrderFulfillmentAction(formData: FormData) {
 }
 
 export async function sendOrderEmailAction(formData: FormData) {
-  await assertAdmin();
+  const supabase = await assertAdmin();
 
   const orderId = textValue(formData, "order_id");
 
   try {
-    await sendOrderCreatedNotifications(createServiceSupabaseClient(), orderId);
+    await sendOrderCreatedNotifications(supabase, orderId);
   } catch (error) {
     redirect(orderEmailPath(error));
   }
