@@ -96,6 +96,16 @@ function orderEmailPath(error?: unknown) {
   return `/admin/orders?error=${encodeURIComponent(message)}`;
 }
 
+function orderCustomerEmailPath(error?: unknown) {
+  if (!error) {
+    return "/admin/orders?emailUpdated=1";
+  }
+
+  const message = readableError(error, "The customer email could not be updated.");
+
+  return `/admin/orders?error=${encodeURIComponent(message)}`;
+}
+
 function splitMetadataIds(value: string | undefined) {
   return (value ?? "")
     .split(",")
@@ -506,6 +516,39 @@ export async function updateOrderFulfillmentAction(formData: FormData) {
 
   revalidatePath("/admin/orders");
   redirect(orderUpdatedPath());
+}
+
+export async function updateOrderCustomerEmailAction(formData: FormData) {
+  const supabase = await assertAdmin();
+
+  const orderId = textValue(formData, "order_id");
+  const customerEmail = textValue(formData, "customer_email").toLowerCase();
+
+  if (!customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    redirect(orderCustomerEmailPath(new Error("Enter a valid customer email.")));
+  }
+
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        customer_email: customerEmail,
+        customer_id: null,
+        customer_confirmation_sent_at: null
+      })
+      .eq("id", orderId)
+      .select("id")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    redirect(orderCustomerEmailPath(error));
+  }
+
+  revalidatePath("/admin/orders");
+  redirect(orderCustomerEmailPath());
 }
 
 export async function sendOrderEmailAction(formData: FormData) {

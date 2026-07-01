@@ -3,6 +3,7 @@ import { AdminNav } from "@/components/admin-nav";
 import {
   recoverStripeOrderAction,
   sendOrderEmailAction,
+  updateOrderCustomerEmailAction,
   updateOrderFulfillmentAction
 } from "@/app/admin/orders/actions";
 import { getAdminOrders } from "@/lib/admin";
@@ -13,6 +14,7 @@ import type { OrderSummary } from "@/lib/types";
 type AdminOrdersPageProps = {
   searchParams?: Promise<{
     error?: string;
+    emailUpdated?: string;
     recovered?: string;
     emailed?: string;
     updated?: string;
@@ -77,7 +79,7 @@ function OrderCard({ order }: { order: OrderSummary }) {
             </div>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               {createdAt.toLocaleString()} · {itemCount}{" "}
-              {itemCount === 1 ? "item" : "items"} · {order.customerEmail}
+              {itemCount === 1 ? "item" : "items"}
             </p>
           </div>
           <div className="text-left lg:text-right">
@@ -179,6 +181,28 @@ function OrderCard({ order }: { order: OrderSummary }) {
       </div>
 
       <div className="border-t border-slate-200 bg-slate-50 p-5">
+        <form
+          action={updateOrderCustomerEmailAction}
+          className="mb-4 grid gap-3 lg:grid-cols-[1fr_auto]"
+        >
+          <input type="hidden" name="order_id" value={order.id} />
+          <label className="grid gap-2">
+            <span className="label">Buyer email</span>
+            <input
+              className="field"
+              name="customer_email"
+              type="email"
+              defaultValue={order.customerEmail}
+              required
+            />
+          </label>
+          <div className="flex items-end">
+            <button type="submit" className="button-secondary">
+              Save buyer email
+            </button>
+          </div>
+        </form>
+
         <form
           id={`order-${order.id}`}
           action={updateOrderFulfillmentAction}
@@ -285,6 +309,11 @@ export default async function AdminOrdersPage({
         {query?.updated ? (
           <div className="mb-6 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-bay">
             Order updated and customer status email queued.
+          </div>
+        ) : null}
+        {query?.emailUpdated ? (
+          <div className="mb-6 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-bay">
+            Buyer email updated. Use resend order email to send the confirmation.
           </div>
         ) : null}
         {query?.emailed ? (
