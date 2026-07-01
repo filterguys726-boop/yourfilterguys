@@ -164,7 +164,7 @@ export function ProductForm({
           <input
             type="checkbox"
             name="active"
-            defaultChecked={product?.active ?? false}
+            defaultChecked={product?.active ?? true}
             className="h-4 w-4 rounded border-slate-300"
           />
           Active storefront product
