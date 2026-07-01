@@ -3,9 +3,9 @@ import { AdminNav } from "@/components/admin-nav";
 import {
   recoverStripeOrderAction,
   sendOrderEmailAction,
-  updateOrderCustomerEmailAction,
   updateOrderFulfillmentAction
 } from "@/app/admin/orders/actions";
+import { BuyerEmailForm } from "@/app/admin/orders/buyer-email-form";
 import { getAdminOrders } from "@/lib/admin";
 import { adminOrderEmail, hasEmailEnv, orderFromEmail } from "@/lib/env";
 import { formatMoney } from "@/lib/format";
@@ -181,27 +181,7 @@ function OrderCard({ order }: { order: OrderSummary }) {
       </div>
 
       <div className="border-t border-slate-200 bg-slate-50 p-5">
-        <form
-          action={updateOrderCustomerEmailAction}
-          className="mb-4 grid gap-3 lg:grid-cols-[1fr_auto]"
-        >
-          <input type="hidden" name="order_id" value={order.id} />
-          <label className="grid gap-2">
-            <span className="label">Buyer email</span>
-            <input
-              className="field"
-              name="customer_email"
-              type="email"
-              defaultValue={order.customerEmail}
-              required
-            />
-          </label>
-          <div className="flex items-end">
-            <button type="submit" className="button-secondary">
-              Save buyer email
-            </button>
-          </div>
-        </form>
+        <BuyerEmailForm orderId={order.id} customerEmail={order.customerEmail} />
 
         <form
           id={`order-${order.id}`}
