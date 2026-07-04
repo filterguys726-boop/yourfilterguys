@@ -5,6 +5,8 @@ import { AdminNav } from "@/components/admin-nav";
 import { getAdminCustomerPreview } from "@/lib/admin";
 import { formatMoney } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 type AdminCustomersPageProps = {
   searchParams?: Promise<{
     email?: string;

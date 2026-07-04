@@ -11,6 +11,8 @@ import { adminOrderEmail, hasEmailEnv, orderFromEmail } from "@/lib/env";
 import { formatMoney } from "@/lib/format";
 import type { OrderSummary } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 type AdminOrdersPageProps = {
   searchParams?: Promise<{
     error?: string;

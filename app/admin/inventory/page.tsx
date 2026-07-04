@@ -4,6 +4,8 @@ import { AdminNav } from "@/components/admin-nav";
 import { adjustInventoryAction } from "@/app/admin/products/actions";
 import { getAdminProducts } from "@/lib/admin";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminInventoryPage() {
   const { state, products } = await getAdminProducts();
 

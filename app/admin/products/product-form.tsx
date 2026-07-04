@@ -8,8 +8,15 @@ export function ProductForm({
   categories: Category[];
   product?: CatalogProduct | null;
 }) {
+  const currentGallery =
+    product?.imageGallery?.filter((image) => Boolean(image.id)) ?? [];
+
   return (
-    <form action={upsertProductAction} className="surface p-6">
+    <form
+      action={upsertProductAction}
+      encType="multipart/form-data"
+      className="surface p-6"
+    >
       <input type="hidden" name="product_id" value={product?.id ?? ""} />
       <input
         type="hidden"
@@ -110,6 +117,29 @@ export function ProductForm({
           <span className="label">Upload primary image</span>
           <input className="field" name="image_file" type="file" accept="image/*" />
         </label>
+        {product?.imageUrl ? (
+          <div className="grid gap-3 md:col-span-2">
+            <p className="label">Current primary image</p>
+            <div className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[160px_1fr] sm:items-center">
+              <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={product.imageUrl}
+                  alt={product.imageAlt}
+                  className="aspect-square w-full object-contain p-2"
+                />
+              </div>
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  name="remove_primary_image"
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                Remove current primary image
+              </label>
+            </div>
+          </div>
+        ) : null}
         <label className="grid gap-2 md:col-span-2">
           <span className="label">Add gallery images</span>
           <input
@@ -124,11 +154,11 @@ export function ProductForm({
             shots, or detail photos.
           </span>
         </label>
-        {product?.imageGallery?.length ? (
+        {currentGallery.length ? (
           <div className="md:col-span-2">
             <p className="label">Current gallery</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
-              {product.imageGallery.map((image) => (
+              {currentGallery.map((image) => (
                 <div
                   key={image.url}
                   className="overflow-hidden rounded-md border border-slate-200 bg-white"
@@ -139,6 +169,15 @@ export function ProductForm({
                     alt={image.alt}
                     className="aspect-square w-full object-contain p-2"
                   />
+                  <label className="flex items-center gap-2 border-t border-slate-100 px-3 py-2 text-xs font-semibold text-slate-700">
+                    <input
+                      type="checkbox"
+                      name="remove_gallery_image_ids"
+                      value={image.id}
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                    Remove
+                  </label>
                 </div>
               ))}
             </div>

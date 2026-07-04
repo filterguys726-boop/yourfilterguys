@@ -5,6 +5,8 @@ import { AdminNav } from "@/components/admin-nav";
 import { getAdminOrders, getAdminProducts, getAdminState } from "@/lib/admin";
 import { formatMoney } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboardPage() {
   const state = await getAdminState();
 

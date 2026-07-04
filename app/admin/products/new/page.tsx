@@ -5,6 +5,8 @@ import { getAdminState } from "@/lib/admin";
 import { getCategories } from "@/lib/catalog";
 import { ProductForm } from "@/app/admin/products/product-form";
 
+export const dynamic = "force-dynamic";
+
 type NewProductPageProps = {
   searchParams?: Promise<{
     error?: string;

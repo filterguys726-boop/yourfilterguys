@@ -14,6 +14,8 @@ import {
 } from "@/app/admin/products/actions";
 import { ProductForm } from "@/app/admin/products/product-form";
 
+export const dynamic = "force-dynamic";
+
 type AdminProductPageProps = {
   params: Promise<{
     id: string;

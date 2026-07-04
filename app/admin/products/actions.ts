@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { adminEmails } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase";
 
+const defaultProductImageUrl = "/product-oil-filter.svg";
+
 async function assertAdmin() {
   const supabase = await createServerSupabaseClient();
 
@@ -46,6 +48,27 @@ function textValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
+function textValues(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+}
+
+function integerValue(formData: FormData, key: string) {
+  const value = textValue(formData, key);
+  const numberValue = Number(value);
+
+  return Number.isFinite(numberValue) ? Math.trunc(numberValue) : 0;
+}
+
+function numberValue(formData: FormData, key: string) {
+  const value = textValue(formData, key);
+  const parsedValue = Number(value);
+
+  return Number.isFinite(parsedValue) ? parsedValue : 0;
+}
+
 function normalizeSlug(value: string) {
   return value
     .trim()
@@ -60,6 +83,21 @@ function errorPath(path: string, error: unknown) {
     error instanceof Error ? error.message : "The admin action could not be saved.";
 
   return `${path}?error=${encodeURIComponent(message)}`;
+}
+
+function revalidateProductAdminPaths(productId?: string, slug?: string) {
+  revalidatePath("/admin");
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/inventory");
+  revalidatePath("/products");
+
+  if (productId) {
+    revalidatePath(`/admin/products/${productId}`);
+  }
+
+  if (slug) {
+    revalidatePath(`/products/${slug}`);
+  }
 }
 
 async function uploadProductImage(
@@ -119,6 +157,43 @@ async function addProductGalleryImages(
   }
 }
 
+async function deleteProductGalleryImages(
+  supabase: Awaited<ReturnType<typeof assertAdmin>>,
+  productId: string,
+  imageIds: string[]
+) {
+  if (!imageIds.length) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("product_images")
+    .delete()
+    .eq("product_id", productId)
+    .in("id", imageIds);
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function getProductSlug(
+  supabase: Awaited<ReturnType<typeof assertAdmin>>,
+  productId: string
+) {
+  if (!productId) {
+    return undefined;
+  }
+
+  const { data } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .maybeSingle();
+
+  return data?.slug;
+}
+
 export async function upsertProductAction(formData: FormData) {
   const supabase = await assertAdmin();
   const productId = textValue(formData, "product_id");
@@ -126,7 +201,17 @@ export async function upsertProductAction(formData: FormData) {
   const requestedImageUrl = textValue(formData, "image_url");
   const imageFile = formData.get("image_file");
   const galleryFiles = getImageFiles(formData, "image_files");
-  let imageUrl = requestedImageUrl || existingImageUrl || "/product-oil-filter.svg";
+  const removePrimaryImage = formData.get("remove_primary_image") === "on";
+  const galleryImageIdsToRemove = textValues(formData, "remove_gallery_image_ids");
+  let imageUrl =
+    requestedImageUrl || existingImageUrl || defaultProductImageUrl;
+
+  if (removePrimaryImage) {
+    imageUrl =
+      requestedImageUrl && requestedImageUrl !== existingImageUrl
+        ? requestedImageUrl
+        : defaultProductImageUrl;
+  }
 
   if (imageFile instanceof File && imageFile.size > 0) {
     try {
@@ -159,6 +244,7 @@ export async function upsertProductAction(formData: FormData) {
   };
 
   if (productId) {
+    const existingSlug = await getProductSlug(supabase, productId);
     const { error } = await supabase
       .from("products")
       .update(payload)
@@ -169,6 +255,11 @@ export async function upsertProductAction(formData: FormData) {
     }
 
     try {
+      await deleteProductGalleryImages(
+        supabase,
+        productId,
+        galleryImageIdsToRemove
+      );
       await addProductGalleryImages(
         supabase,
         productId,
@@ -179,8 +270,10 @@ export async function upsertProductAction(formData: FormData) {
       redirect(errorPath(`/admin/products/${productId}`, error));
     }
 
-    revalidatePath(`/admin/products/${productId}`);
-    revalidatePath(`/products/${payload.slug}`);
+    revalidateProductAdminPaths(productId, payload.slug);
+    if (existingSlug && existingSlug !== payload.slug) {
+      revalidatePath(`/products/${existingSlug}`);
+    }
     redirect(`/admin/products/${productId}`);
   }
 
@@ -205,7 +298,7 @@ export async function upsertProductAction(formData: FormData) {
     redirect(errorPath(`/admin/products/${data.id}`, galleryError));
   }
 
-  revalidatePath("/admin/products");
+  revalidateProductAdminPaths(data.id, payload.slug);
   redirect(`/admin/products/${data.id}`);
 }
 
@@ -239,8 +332,7 @@ export async function deleteProductAction(formData: FormData) {
     redirect(errorPath(`/admin/products/${productId}`, error));
   }
 
-  revalidatePath("/admin/products");
-  revalidatePath("/products");
+  revalidateProductAdminPaths(productId, product?.slug);
 
   if (product?.slug) {
     revalidatePath(`/products/${product.slug}`);
@@ -253,6 +345,7 @@ export async function upsertVariantAction(formData: FormData) {
   const supabase = await assertAdmin();
   const productId = textValue(formData, "product_id");
   const variantId = textValue(formData, "variant_id");
+  const productSlug = await getProductSlug(supabase, productId);
 
   const payload = {
     product_id: productId,
@@ -260,9 +353,9 @@ export async function upsertVariantAction(formData: FormData) {
     sku: textValue(formData, "sku"),
     price_cents: centsFromDollars(formData.get("price")),
     cost_cents: centsFromDollars(formData.get("cost")),
-    stock_quantity: Number(formData.get("stock_quantity") ?? 0),
+    stock_quantity: integerValue(formData, "stock_quantity"),
     backorder_allowed: formData.get("backorder_allowed") === "on",
-    weight_oz: Number(formData.get("weight_oz") ?? 0),
+    weight_oz: numberValue(formData, "weight_oz"),
     dimensions_in: textValue(formData, "dimensions_in"),
     active: formData.get("active") === "on"
   };
@@ -279,7 +372,7 @@ export async function upsertVariantAction(formData: FormData) {
     revalidatePath("/products");
   }
 
-  revalidatePath(`/admin/products/${productId}`);
+  revalidateProductAdminPaths(productId, productSlug);
   redirect(`/admin/products/${productId}`);
 }
 
@@ -308,10 +401,11 @@ export async function createFitmentAction(formData: FormData) {
 export async function adjustInventoryAction(formData: FormData) {
   const supabase = await assertAdmin();
   const productId = textValue(formData, "product_id");
+  const productSlug = await getProductSlug(supabase, productId);
 
   const { error } = await supabase.rpc("adjust_inventory", {
     variant_id_input: textValue(formData, "variant_id"),
-    quantity_delta_input: Number(formData.get("quantity_delta") ?? 0),
+    quantity_delta_input: integerValue(formData, "quantity_delta"),
     reason_input: textValue(formData, "reason") || "admin_adjustment"
   });
 
@@ -319,7 +413,6 @@ export async function adjustInventoryAction(formData: FormData) {
     redirect(errorPath(productId ? `/admin/products/${productId}` : "/admin/inventory", error));
   }
 
-  revalidatePath("/admin/inventory");
-  revalidatePath(`/admin/products/${productId}`);
+  revalidateProductAdminPaths(productId, productSlug);
   redirect(productId ? `/admin/products/${productId}` : "/admin/inventory");
 }
