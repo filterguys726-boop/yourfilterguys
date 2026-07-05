@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { adminEmails } from "@/lib/env";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import {
+  createServerSupabaseClient,
+  createServiceSupabaseClient
+} from "@/lib/supabase";
 
 const defaultProductImageUrl = "/product-oil-filter.svg";
 
@@ -406,12 +409,13 @@ export async function createFitmentAction(formData: FormData) {
 }
 
 export async function adjustInventoryAction(formData: FormData) {
-  const supabase = await assertAdmin();
+  const adminSupabase = await assertAdmin();
+  const serviceSupabase = createServiceSupabaseClient();
   const productId = textValue(formData, "product_id");
   const variantId = textValue(formData, "variant_id");
   const quantityDelta = integerValue(formData, "quantity_delta");
   const reason = textValue(formData, "reason") || "admin_adjustment";
-  const productSlug = await getProductSlug(supabase, productId);
+  const productSlug = await getProductSlug(adminSupabase, productId);
 
   if (!quantityDelta) {
     redirect(
@@ -422,7 +426,7 @@ export async function adjustInventoryAction(formData: FormData) {
     );
   }
 
-  const { data: variant, error: variantError } = await supabase
+  const { data: variant, error: variantError } = await serviceSupabase
     .from("product_variants")
     .select("stock_quantity")
     .eq("id", variantId)
@@ -442,10 +446,12 @@ export async function adjustInventoryAction(formData: FormData) {
     Number(variant.stock_quantity ?? 0) + quantityDelta
   );
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await serviceSupabase
     .from("product_variants")
     .update({ stock_quantity: nextStock })
-    .eq("id", variantId);
+    .eq("id", variantId)
+    .select("stock_quantity")
+    .single();
 
   if (updateError) {
     redirect(
@@ -456,7 +462,7 @@ export async function adjustInventoryAction(formData: FormData) {
     );
   }
 
-  const { error: movementError } = await supabase
+  const { error: movementError } = await serviceSupabase
     .from("inventory_movements")
     .insert({
       variant_id: variantId,
@@ -467,12 +473,11 @@ export async function adjustInventoryAction(formData: FormData) {
     });
 
   if (movementError) {
-    redirect(
-      errorPath(
-        productId ? `/admin/products/${productId}` : "/admin/inventory",
-        movementError
-      )
-    );
+    console.error("Inventory movement log failed after stock adjustment", {
+      variantId,
+      quantityDelta,
+      error: movementError
+    });
   }
 
   revalidateProductAdminPaths(productId, productSlug);
