@@ -65,22 +65,35 @@ export default async function AdminInventoryPage() {
                       {variant.backorderAllowed ? "Allowed" : "Disabled"}
                     </td>
                     <td className="px-5 py-4">
-                      <form action={adjustInventoryAction} className="flex gap-2">
+                      <form
+                        action={adjustInventoryAction}
+                        className="flex flex-wrap items-end gap-2"
+                      >
                         <input type="hidden" name="product_id" value="" />
                         <input type="hidden" name="variant_id" value={variant.id} />
-                        <input
-                          className="field w-24"
-                          name="quantity_delta"
-                          placeholder="-1"
-                          inputMode="numeric"
-                        />
-                        <input
-                          className="field w-40"
-                          name="reason"
-                          placeholder="cycle_count"
-                        />
+                        <label className="grid gap-1">
+                          <span className="text-[11px] font-black uppercase text-slate-500">
+                            Qty change
+                          </span>
+                          <input
+                            className="field w-28"
+                            name="quantity_delta"
+                            placeholder="+5 or -2"
+                            inputMode="numeric"
+                          />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="text-[11px] font-black uppercase text-slate-500">
+                            Reason
+                          </span>
+                          <input
+                            className="field w-44"
+                            name="reason"
+                            placeholder="manual correction"
+                          />
+                        </label>
                         <button className="button-secondary px-3" type="submit">
-                          Save
+                          Adjust stock
                         </button>
                       </form>
                     </td>
