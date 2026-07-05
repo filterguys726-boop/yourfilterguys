@@ -67,23 +67,31 @@ export default async function AdminInventoryPage() {
                     <td className="px-5 py-4">
                       <form
                         action={adjustInventoryAction}
-                        className="flex flex-wrap items-center gap-2"
+                        className="flex flex-wrap items-end gap-2"
                       >
                         <input type="hidden" name="product_id" value="" />
                         <input type="hidden" name="variant_id" value={variant.id} />
-                        <input
-                          aria-label="Quantity change"
-                          className="field h-10 w-28"
-                          name="quantity_delta"
-                          placeholder="+5 or -2"
-                          inputMode="numeric"
-                        />
-                        <input
-                          aria-label="Reason for stock adjustment"
-                          className="field h-10 w-44"
-                          name="reason"
-                          placeholder="manual correction"
-                        />
+                        <label className="grid gap-1">
+                          <span className="text-[11px] font-black uppercase text-slate-500">
+                            Qty change
+                          </span>
+                          <input
+                            className="field h-10 w-28"
+                            name="quantity_delta"
+                            placeholder="+5 or -2"
+                            inputMode="numeric"
+                          />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="text-[11px] font-black uppercase text-slate-500">
+                            Reason
+                          </span>
+                          <input
+                            className="field h-10 w-44"
+                            name="reason"
+                            placeholder="manual correction"
+                          />
+                        </label>
                         <button className="button-secondary px-3" type="submit">
                           Adjust stock
                         </button>
