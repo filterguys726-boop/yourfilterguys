@@ -116,6 +116,10 @@ export function ProductForm({
         <label className="grid gap-2">
           <span className="label">Upload primary image</span>
           <input className="field" name="image_file" type="file" accept="image/*" />
+          <span className="text-xs font-semibold text-slate-500">
+            Uploading a new primary image replaces the primary image shown on
+            product cards and product pages.
+          </span>
         </label>
         {product?.imageUrl ? (
           <div className="grid gap-3 md:col-span-2">
@@ -135,7 +139,7 @@ export function ProductForm({
                   name="remove_primary_image"
                   className="h-4 w-4 rounded border-slate-300"
                 />
-                Remove current primary image
+                Clear primary image and use default placeholder
               </label>
             </div>
           </div>

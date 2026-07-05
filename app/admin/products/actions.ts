@@ -80,7 +80,14 @@ function normalizeSlug(value: string) {
 
 function errorPath(path: string, error: unknown) {
   const message =
-    error instanceof Error ? error.message : "The admin action could not be saved.";
+    error instanceof Error
+      ? error.message
+      : error &&
+          typeof error === "object" &&
+          "message" in error &&
+          typeof error.message === "string"
+        ? error.message
+        : "The admin action could not be saved.";
 
   return `${path}?error=${encodeURIComponent(message)}`;
 }
@@ -401,16 +408,71 @@ export async function createFitmentAction(formData: FormData) {
 export async function adjustInventoryAction(formData: FormData) {
   const supabase = await assertAdmin();
   const productId = textValue(formData, "product_id");
+  const variantId = textValue(formData, "variant_id");
+  const quantityDelta = integerValue(formData, "quantity_delta");
+  const reason = textValue(formData, "reason") || "admin_adjustment";
   const productSlug = await getProductSlug(supabase, productId);
 
-  const { error } = await supabase.rpc("adjust_inventory", {
-    variant_id_input: textValue(formData, "variant_id"),
-    quantity_delta_input: integerValue(formData, "quantity_delta"),
-    reason_input: textValue(formData, "reason") || "admin_adjustment"
-  });
+  if (!quantityDelta) {
+    redirect(
+      errorPath(
+        productId ? `/admin/products/${productId}` : "/admin/inventory",
+        new Error("Enter a non-zero stock adjustment, like +5 or -2.")
+      )
+    );
+  }
 
-  if (error) {
-    redirect(errorPath(productId ? `/admin/products/${productId}` : "/admin/inventory", error));
+  const { data: variant, error: variantError } = await supabase
+    .from("product_variants")
+    .select("stock_quantity")
+    .eq("id", variantId)
+    .single();
+
+  if (variantError) {
+    redirect(
+      errorPath(
+        productId ? `/admin/products/${productId}` : "/admin/inventory",
+        variantError
+      )
+    );
+  }
+
+  const nextStock = Math.max(
+    0,
+    Number(variant.stock_quantity ?? 0) + quantityDelta
+  );
+
+  const { error: updateError } = await supabase
+    .from("product_variants")
+    .update({ stock_quantity: nextStock })
+    .eq("id", variantId);
+
+  if (updateError) {
+    redirect(
+      errorPath(
+        productId ? `/admin/products/${productId}` : "/admin/inventory",
+        updateError
+      )
+    );
+  }
+
+  const { error: movementError } = await supabase
+    .from("inventory_movements")
+    .insert({
+      variant_id: variantId,
+      quantity_delta: quantityDelta,
+      movement_type: "admin_adjustment",
+      reason,
+      reference_type: "admin"
+    });
+
+  if (movementError) {
+    redirect(
+      errorPath(
+        productId ? `/admin/products/${productId}` : "/admin/inventory",
+        movementError
+      )
+    );
   }
 
   revalidateProductAdminPaths(productId, productSlug);
