@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { adminEmails } from "@/lib/env";
 import {
   createServerSupabaseClient,
@@ -111,7 +112,7 @@ function revalidateProductAdminPaths(productId?: string, slug?: string) {
 }
 
 async function uploadProductImage(
-  supabase: Awaited<ReturnType<typeof assertAdmin>>,
+  supabase: SupabaseClient,
   file: File
 ) {
   const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-");
@@ -138,7 +139,7 @@ function getImageFiles(formData: FormData, key: string) {
 }
 
 async function addProductGalleryImages(
-  supabase: Awaited<ReturnType<typeof assertAdmin>>,
+  supabase: SupabaseClient,
   productId: string,
   files: File[],
   altText: string
@@ -168,7 +169,7 @@ async function addProductGalleryImages(
 }
 
 async function deleteProductGalleryImages(
-  supabase: Awaited<ReturnType<typeof assertAdmin>>,
+  supabase: SupabaseClient,
   productId: string,
   imageIds: string[]
 ) {
@@ -188,7 +189,7 @@ async function deleteProductGalleryImages(
 }
 
 async function getProductSlug(
-  supabase: Awaited<ReturnType<typeof assertAdmin>>,
+  supabase: SupabaseClient,
   productId: string
 ) {
   if (!productId) {
@@ -205,7 +206,8 @@ async function getProductSlug(
 }
 
 export async function upsertProductAction(formData: FormData) {
-  const supabase = await assertAdmin();
+  await assertAdmin();
+  const serviceSupabase = createServiceSupabaseClient();
   const productId = textValue(formData, "product_id");
   const existingImageUrl = textValue(formData, "existing_image_url");
   const requestedImageUrl = textValue(formData, "image_url");
@@ -225,7 +227,7 @@ export async function upsertProductAction(formData: FormData) {
 
   if (imageFile instanceof File && imageFile.size > 0) {
     try {
-      imageUrl = await uploadProductImage(supabase, imageFile);
+      imageUrl = await uploadProductImage(serviceSupabase, imageFile);
     } catch (error) {
       redirect(
         errorPath(
@@ -254,8 +256,8 @@ export async function upsertProductAction(formData: FormData) {
   };
 
   if (productId) {
-    const existingSlug = await getProductSlug(supabase, productId);
-    const { error } = await supabase
+    const existingSlug = await getProductSlug(serviceSupabase, productId);
+    const { error } = await serviceSupabase
       .from("products")
       .update(payload)
       .eq("id", productId);
@@ -266,12 +268,12 @@ export async function upsertProductAction(formData: FormData) {
 
     try {
       await deleteProductGalleryImages(
-        supabase,
+        serviceSupabase,
         productId,
         galleryImageIdsToRemove
       );
       await addProductGalleryImages(
-        supabase,
+        serviceSupabase,
         productId,
         galleryFiles,
         payload.image_alt
@@ -287,7 +289,7 @@ export async function upsertProductAction(formData: FormData) {
     redirect(`/admin/products/${productId}`);
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await serviceSupabase
     .from("products")
     .insert(payload)
     .select("id")
@@ -299,7 +301,7 @@ export async function upsertProductAction(formData: FormData) {
 
   try {
     await addProductGalleryImages(
-      supabase,
+      serviceSupabase,
       data.id,
       galleryFiles,
       payload.image_alt
@@ -313,7 +315,8 @@ export async function upsertProductAction(formData: FormData) {
 }
 
 export async function deleteProductAction(formData: FormData) {
-  const supabase = await assertAdmin();
+  await assertAdmin();
+  const serviceSupabase = createServiceSupabaseClient();
   const productId = textValue(formData, "product_id");
   const confirmation = textValue(formData, "delete_confirmation");
 
@@ -326,7 +329,7 @@ export async function deleteProductAction(formData: FormData) {
     );
   }
 
-  const { data: product, error: productError } = await supabase
+  const { data: product, error: productError } = await serviceSupabase
     .from("products")
     .select("slug")
     .eq("id", productId)
@@ -336,7 +339,10 @@ export async function deleteProductAction(formData: FormData) {
     redirect(errorPath(`/admin/products/${productId}`, productError));
   }
 
-  const { error } = await supabase.from("products").delete().eq("id", productId);
+  const { error } = await serviceSupabase
+    .from("products")
+    .delete()
+    .eq("id", productId);
 
   if (error) {
     redirect(errorPath(`/admin/products/${productId}`, error));
@@ -352,10 +358,11 @@ export async function deleteProductAction(formData: FormData) {
 }
 
 export async function upsertVariantAction(formData: FormData) {
-  const supabase = await assertAdmin();
+  await assertAdmin();
+  const serviceSupabase = createServiceSupabaseClient();
   const productId = textValue(formData, "product_id");
   const variantId = textValue(formData, "variant_id");
-  const productSlug = await getProductSlug(supabase, productId);
+  const productSlug = await getProductSlug(serviceSupabase, productId);
 
   const payload = {
     product_id: productId,
@@ -371,8 +378,11 @@ export async function upsertVariantAction(formData: FormData) {
   };
 
   const result = variantId
-    ? await supabase.from("product_variants").update(payload).eq("id", variantId)
-    : await supabase.from("product_variants").insert(payload);
+    ? await serviceSupabase
+        .from("product_variants")
+        .update(payload)
+        .eq("id", variantId)
+    : await serviceSupabase.from("product_variants").insert(payload);
 
   if (result.error) {
     redirect(errorPath(`/admin/products/${productId}`, result.error));
@@ -387,10 +397,11 @@ export async function upsertVariantAction(formData: FormData) {
 }
 
 export async function createFitmentAction(formData: FormData) {
-  const supabase = await assertAdmin();
+  await assertAdmin();
+  const serviceSupabase = createServiceSupabaseClient();
   const productId = textValue(formData, "product_id");
 
-  const { error } = await supabase.from("vehicle_fitment").insert({
+  const { error } = await serviceSupabase.from("vehicle_fitment").insert({
     product_id: productId,
     year: Number(formData.get("year") ?? 0),
     make: textValue(formData, "make"),
