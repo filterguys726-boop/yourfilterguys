@@ -3,7 +3,10 @@ const nextConfig = {
   typedRoutes: false,
   devIndicators: false,
   experimental: {
-    devtoolSegmentExplorer: false
+    devtoolSegmentExplorer: false,
+    serverActions: {
+      bodySizeLimit: "8mb"
+    }
   }
 };
 

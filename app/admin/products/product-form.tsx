@@ -118,7 +118,8 @@ export function ProductForm({
           <input className="field" name="image_file" type="file" accept="image/*" />
           <span className="text-xs font-semibold text-slate-500">
             Uploading a new primary image replaces the primary image shown on
-            product cards and product pages.
+            product cards and product pages. Use compressed JPG, PNG, or WebP
+            files under 8 MB.
           </span>
         </label>
         {product?.imageUrl ? (
@@ -155,7 +156,7 @@ export function ProductForm({
           />
           <span className="text-xs font-semibold text-slate-500">
             Upload one or more additional product angles, labels, packaging
-            shots, or detail photos.
+            shots, or detail photos. Keep each image under 8 MB.
           </span>
         </label>
         {currentGallery.length ? (
