@@ -33,13 +33,15 @@ export default async function HomePage() {
   return (
     <div>
       <section
-        className="overflow-hidden border-b border-slate-200 bg-slate-950 bg-cover bg-center text-white"
+        className="overflow-hidden border-b border-slate-200 bg-slate-950 bg-center text-white"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.22), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.94) 0%, rgba(11, 43, 79, 0.82) 52%, rgba(5, 12, 24, 0.92) 100%), url('/yourfilterguys-hero.jpg')"
+            "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.22), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.9) 0%, rgba(11, 43, 79, 0.76) 52%, rgba(5, 12, 24, 0.9) 100%), url('/yourfilterguys-hero.jpg')",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "auto, auto, min(1500px, 140vw) auto"
         }}
       >
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[.86fr_1fr] lg:px-8 lg:py-14">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[.86fr_1fr] lg:px-8 lg:py-20">
           <div className="flex flex-col justify-center">
             <p className="inline-flex w-fit items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black uppercase text-amber-200 shadow-sm">
               <PackageCheck aria-hidden className="h-4 w-4" />
@@ -96,7 +98,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-lg border border-white/15 bg-slate-950 p-2 shadow-panel">
+          <div className="relative flex min-h-full items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950 p-2 shadow-panel">
             <Image
               src="/hero-diesel-parts-help.png"
               alt="Need help finding your diesel part promotional graphic from The Filter Guys"
