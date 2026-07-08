@@ -33,12 +33,11 @@ export default async function HomePage() {
   return (
     <div>
       <section
-        className="overflow-hidden border-b border-slate-200 bg-slate-950 bg-center text-white"
+        className="overflow-hidden border-b border-slate-200 bg-slate-950 bg-cover bg-center text-white"
         style={{
           backgroundImage:
             "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.22), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.9) 0%, rgba(11, 43, 79, 0.76) 52%, rgba(5, 12, 24, 0.9) 100%), url('/yourfilterguys-hero.jpg')",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "auto, auto, min(1500px, 140vw) auto"
+          backgroundRepeat: "no-repeat"
         }}
       >
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[.86fr_1fr] lg:px-8 lg:py-20">
