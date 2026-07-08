@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BadgeCheck, Box, Ruler, Truck } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Ruler, Truck } from "lucide-react";
 import { AddToCartPanel } from "@/components/add-to-cart-panel";
 import { FitmentTable } from "@/components/fitment-table";
 import { ProductGallery } from "@/components/product-gallery";
@@ -115,58 +115,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
         <FitmentTable fitment={product.fitment} />
-
-        <section className="surface overflow-hidden">
-          <div className="border-b border-slate-200 p-5">
-            <div className="flex items-center gap-2 text-sm font-bold text-electric">
-              <Box aria-hidden className="h-4 w-4" />
-              Variant data
-            </div>
-            <h2 className="mt-2 text-2xl font-black text-ink">
-              SKUs and inventory
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                <tr>
-                  <th className="px-5 py-3 font-bold">Variant</th>
-                  <th className="px-5 py-3 font-bold">SKU</th>
-                  <th className="px-5 py-3 font-bold">Price</th>
-                  <th className="px-5 py-3 font-bold">Stock</th>
-                  <th className="px-5 py-3 font-bold">Backorder</th>
-                  <th className="px-5 py-3 font-bold">Weight</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
-                {activeVariants.map((variant) => (
-                  <tr key={variant.id}>
-                    <td className="px-5 py-4 font-bold text-ink">{variant.name}</td>
-                    <td className="px-5 py-4">{variant.sku}</td>
-                    <td className="px-5 py-4">{formatMoney(variant.priceCents)}</td>
-                    <td className="px-5 py-4">{variant.stockQuantity}</td>
-                    <td className="px-5 py-4">
-                      {variant.backorderAllowed ? "Allowed" : "Disabled"}
-                    </td>
-                    <td className="px-5 py-4">
-                      {variant.weightOz ? `${variant.weightOz} oz` : "Not set"}
-                    </td>
-                  </tr>
-                ))}
-                {!activeVariants.length ? (
-                  <tr>
-                    <td
-                      className="px-5 py-8 text-center text-slate-600"
-                      colSpan={6}
-                    >
-                      No active variants are available yet.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-        </section>
       </section>
     </div>
   );
