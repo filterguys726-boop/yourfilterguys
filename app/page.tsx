@@ -36,7 +36,7 @@ export default async function HomePage() {
         className="overflow-hidden border-b border-slate-200 bg-slate-950 bg-cover bg-center text-white"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.22), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.9) 0%, rgba(11, 43, 79, 0.76) 52%, rgba(5, 12, 24, 0.9) 100%), url('/yourfilterguys-hero.jpg')",
+            "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.22), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.9) 0%, rgba(11, 43, 79, 0.2) 52%, rgba(5, 12, 24, 0.5) 100%), url('/yourfilterguys-hero.jpg')",
           backgroundRepeat: "no-repeat"
         }}
       >
