@@ -90,14 +90,14 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-lg border border-white/15 bg-slate-950 shadow-panel">
+          <div className="relative overflow-hidden rounded-lg border border-white/15 bg-slate-950 p-2 shadow-panel">
             <Image
               src="/hero-diesel-parts-help.png"
               alt="Need help finding your diesel part promotional graphic from The Filter Guys"
               width={1536}
               height={1024}
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="h-full w-full object-cover"
+              className="h-auto w-full rounded-md object-contain"
               priority
             />
           </div>
