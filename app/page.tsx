@@ -90,40 +90,16 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative min-h-[340px] overflow-hidden rounded-lg border border-white/15 bg-slate-950 shadow-panel lg:min-h-[520px]">
+          <div className="relative overflow-hidden rounded-lg border border-white/15 bg-slate-950 shadow-panel">
             <Image
-              src="/hero-filter-products.png"
-              alt="Automotive oil, cabin, air, and fuel filters arranged on a steel workbench"
-              fill
+              src="/hero-diesel-parts-help.png"
+              alt="Need help finding your diesel part promotional graphic from The Filter Guys"
+              width={1536}
+              height={1024}
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover"
+              className="h-full w-full object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,19,34,0.62),rgba(11,19,34,0.04)_42%,rgba(11,19,34,0.10)),linear-gradient(0deg,rgba(11,19,34,0.38),transparent_45%)]" />
-            <div className="absolute left-4 top-4 rounded-md border border-white/20 bg-white/15 px-3 py-2 text-xs font-black uppercase text-white shadow-sm backdrop-blur sm:left-5 sm:top-5">
-              Real parts. Clear fitment.
-            </div>
-            <div className="absolute bottom-5 left-5 right-5 overflow-hidden rounded-lg border border-white/20 bg-slate-950/86 text-white shadow-2xl backdrop-blur sm:left-auto sm:w-[380px]">
-              <div className="border-b border-white/10 px-4 py-3">
-                <p className="text-xs font-black uppercase text-amber-200">
-                  Example fitment check
-                </p>
-                <p className="mt-1 text-lg font-black">2018 Ford F-150</p>
-                <p className="mt-1 text-sm text-slate-300">
-                  5.0L V8 · XL, XLT, Lariat
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-2 p-3 text-xs font-black">
-                <span className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-2 text-white">
-                  <BadgeCheck aria-hidden className="h-3.5 w-3.5 text-amber-200" />
-                  Variant in stock
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-2 text-white">
-                  <Truck aria-hidden className="h-3.5 w-3.5 text-amber-200" />
-                  Ships in the U.S.
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
