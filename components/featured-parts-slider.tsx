@@ -34,24 +34,13 @@ export function FeaturedPartsSlider({
         ref={sliderRef}
         className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 pt-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [&::-webkit-scrollbar]:hidden"
       >
-        {products.map((product, index) => (
+        {products.map((product) => (
           <div
             key={product.id}
             data-featured-card
             className="min-w-[84%] snap-center sm:min-w-[430px] lg:min-w-[460px]"
           >
-            <div
-              className={[
-                "transition duration-300",
-                index === 0 ? "lg:rotate-[-1deg]" : "",
-                index === 1 ? "lg:rotate-[1deg]" : "",
-                index === 2 ? "lg:rotate-[-0.5deg]" : ""
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              <ProductCard product={product} className="shadow-panel" />
-            </div>
+            <ProductCard product={product} className="shadow-panel" />
           </div>
         ))}
       </div>

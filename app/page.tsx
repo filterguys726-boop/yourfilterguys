@@ -17,7 +17,7 @@ export default async function HomePage() {
     getCategories(),
     getProducts()
   ]);
-  const featured = products.slice(0, 3);
+  const featured = products.slice(0, 6);
   const brands = Array.from(
     products.reduce((items, product) => {
       const brand = product.brand.trim();
@@ -32,7 +32,13 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="overflow-hidden border-b border-slate-200 bg-[radial-gradient(circle_at_74%_18%,rgba(198,149,44,0.24),transparent_30%),radial-gradient(circle_at_18%_88%,rgba(203,213,225,0.16),transparent_28%),linear-gradient(135deg,#0b1322_0%,#173f6d_52%,#111827_100%)] text-white">
+      <section
+        className="overflow-hidden border-b border-slate-200 bg-slate-950 bg-cover bg-center text-white"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.22), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.94) 0%, rgba(11, 43, 79, 0.82) 52%, rgba(5, 12, 24, 0.92) 100%), url('/yourfilterguys-hero.jpg')"
+        }}
+      >
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[.86fr_1fr] lg:px-8 lg:py-14">
           <div className="flex flex-col justify-center">
             <p className="inline-flex w-fit items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black uppercase text-amber-200 shadow-sm">
