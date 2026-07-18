@@ -97,14 +97,14 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex min-h-full items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950 p-2 shadow-panel">
+          <div className="relative flex min-h-full items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950/90 px-2 py-1 shadow-panel lg:py-0">
             <Image
               src="/hero-diesel-parts-overlay.png"
               alt="Need help finding your diesel part promotional graphic from The Filter Guys"
-              width={1536}
-              height={1024}
+              width={1672}
+              height={941}
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="h-auto w-full rounded-md object-contain"
+              className="h-auto w-full self-center rounded-md object-contain"
               priority
             />
           </div>
