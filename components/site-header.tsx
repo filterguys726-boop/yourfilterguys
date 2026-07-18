@@ -40,9 +40,9 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <div data-enter="navbar" className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href="/" data-enter="right" data-enter-delay="2" className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <span className="flex h-16 w-20 shrink-0 items-center justify-center sm:h-20 sm:w-24">
+      <div data-enter="navbar" className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-3 lg:px-8">
+        <Link href="/" data-enter="right" data-enter-delay="2" className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
+          <span className="flex h-14 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-24">
             <Image
               src="/yourfilterguys-logo-transparent.png"
               alt={`${brand.name} logo`}
@@ -53,13 +53,13 @@ export function SiteHeader() {
               priority
             />
           </span>
-          <span className="min-w-0 leading-none">
-            <span className="brand-condensed block whitespace-nowrap text-lg uppercase text-ink sm:text-2xl">
+          <span className="hidden min-w-0 overflow-hidden leading-none min-[350px]:block">
+            <span className="brand-condensed block whitespace-nowrap text-base uppercase text-ink sm:text-2xl">
               <span>Your </span>
               <span className="text-shopred">Filter</span>
               <span> Guys</span>
             </span>
-            <span className="brand-tagline -mt-0.5 block whitespace-nowrap text-[9px] uppercase leading-none text-slate-600 sm:text-xs">
+            <span className="brand-tagline -mt-0.5 hidden whitespace-nowrap text-[8px] uppercase leading-none text-slate-600 min-[430px]:block sm:text-xs">
               Real Parts. Real Results.
             </span>
           </span>
@@ -79,11 +79,11 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ThemeToggle />
           <Link
             href="/products"
-            className="button-secondary hidden px-3 sm:inline-flex"
+            className="button-secondary hidden h-10 w-10 p-0 sm:inline-flex"
             aria-label="Search products"
             data-enter="fade"
             data-enter-delay="7"
@@ -94,9 +94,9 @@ export function SiteHeader() {
             <UserRound aria-hidden className="h-4 w-4" />
             <span className="hidden md:inline">Account</span>
           </Link>
-          <Link href="/cart" data-enter="fade" data-enter-delay="9" className="button-primary relative px-3">
+          <Link href="/cart" data-enter="fade" data-enter-delay="9" className="button-primary relative h-10 w-10 p-0 sm:w-auto sm:px-3">
             <ShoppingCart aria-hidden className="h-4 w-4" />
-            <span>Cart</span>
+            <span className="hidden sm:inline">Cart</span>
             {itemCount > 0 ? (
               <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-shopred px-1 text-xs font-bold text-white">
                 {itemCount}
@@ -105,7 +105,7 @@ export function SiteHeader() {
           </Link>
           <button
             type="button"
-            className="button-secondary px-3 lg:hidden"
+            className="button-secondary h-10 w-10 p-0 lg:hidden"
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-label="Open navigation"
