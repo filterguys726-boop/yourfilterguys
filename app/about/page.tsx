@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ShieldCheck, Truck, Wrench } from "lucide-react";
 import { LaunchPage, PolicySection } from "@/components/launch-page";
 import { brand } from "@/lib/brand";
@@ -7,22 +6,22 @@ import { brand } from "@/lib/brand";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "About Your Filter Guys, an automotive filters and service parts store focused on clear fitment and reliable checkout."
+    "About Your Filter Guys, an automotive filters and service parts store focused on clear product information and reliable checkout."
 };
 
 export default function AboutPage() {
   return (
     <LaunchPage
       eyebrow="About"
-      title="Filters, parts, and fitment without the guesswork."
+      title="Filters and parts without the guesswork."
       intro={`${brand.name} is built for drivers and repair buyers who want a cleaner way to order common automotive filters and service parts online.`}
     >
       <div className="grid gap-4 md:grid-cols-3">
         {[
           {
             icon: ShieldCheck,
-            title: "Fitment First",
-            text: "Product pages are designed to show year, make, model, engine, trim, and notes before checkout."
+            title: "Clear Product Details",
+            text: "Product pages keep descriptions, SKUs, pricing, and stock information easy to review."
           },
           {
             icon: Wrench,
@@ -52,23 +51,14 @@ export default function AboutPage() {
         <p>
           {brand.name} is a modern U.S. ecommerce store for automotive filters
           and parts. The MVP is intentionally focused: catalog browsing, clear
-          product variants, vehicle fitment, cart, secure Stripe Checkout,
+          product variants, inventory, cart, secure Stripe Checkout,
           inventory updates, and customer order history.
         </p>
       </PolicySection>
 
-      <PolicySection title="Why Fitment Matters">
+      <PolicySection title="Need Product Help?">
         <p>
-          Automotive parts can vary by engine, trim, production date, and
-          vehicle package. Our product experience is built to make fitment
-          details visible before customers add a part to cart.
-        </p>
-        <p>
-          Need help before ordering? Visit the{" "}
-          <Link className="font-bold text-electric" href="/fitment-help">
-            fitment help page
-          </Link>{" "}
-          or contact{" "}
+          Questions about a product or part number? Contact{" "}
           <a className="font-bold text-electric" href={`mailto:${brand.supportEmail}`}>
             {brand.supportEmail}
           </a>

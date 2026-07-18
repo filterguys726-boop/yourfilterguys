@@ -53,6 +53,7 @@ export type CatalogProduct = {
   imageAlt: string;
   imageGallery?: ProductImage[];
   active: boolean;
+  fitmentEnabled: boolean;
   inventoryBehavior: InventoryBehavior;
   shippingNotes: string | null;
   variants: ProductVariant[];

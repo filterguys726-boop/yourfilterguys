@@ -31,7 +31,7 @@ export default function PrivacyPage() {
           items={[
             "Process orders, payments, taxes, shipping, returns, and customer support requests.",
             "Show order history, purchased products, and account profile information.",
-            "Improve product fitment clarity, inventory accuracy, and website performance.",
+            "Improve product information, inventory accuracy, and website performance.",
             "Send transactional messages related to accounts, orders, checkout, and support."
           ]}
         />

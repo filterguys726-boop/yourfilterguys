@@ -7,7 +7,7 @@ import { brand } from "@/lib/brand";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Contact Your Filter Guys for order support, fitment questions, shipping, and returns."
+    "Contact Your Filter Guys for product questions, order support, shipping, and returns."
 };
 
 export default function ContactPage() {
@@ -15,13 +15,13 @@ export default function ContactPage() {
     <LaunchPage
       eyebrow="Contact"
       title="How can we help?"
-      intro="Send us your order number, product SKU, and vehicle details when relevant. That helps us answer fitment and order questions faster."
+      intro="Send us your order number and product SKU when relevant. That helps us answer product and order questions faster."
     >
       <div className="grid gap-5 lg:grid-cols-[1fr_.8fr]">
         <section>
           <h2 className="text-2xl font-black text-ink">Support Email</h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            For order help, fitment questions, return requests, or shipping
+            For order help, product questions, return requests, or shipping
             questions, email us at:
           </p>
           <a
@@ -32,9 +32,8 @@ export default function ContactPage() {
             {brand.supportEmail}
           </a>
           <p className="mt-4 text-sm leading-6 text-slate-600">
-            Include your order number if you have one. For fitment questions,
-            include year, make, model, engine, trim, and any product SKU you are
-            considering.
+            Include your order number if you have one, plus the product SKU or
+            part number you are considering.
           </p>
         </section>
 
@@ -61,7 +60,7 @@ export default function ContactPage() {
         <p>
           If a part looks different from what you removed from the vehicle, pause
           before installation and contact us. Photos of the old part, new part,
-          product label, and vehicle details help us review the issue.
+          product label, and packaging details help us review the issue.
         </p>
       </PolicySection>
     </LaunchPage>

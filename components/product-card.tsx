@@ -75,10 +75,12 @@ export function ProductCard({
               <PackageCheck aria-hidden className="h-3.5 w-3.5" />
               {getInventoryLabel(product)}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-electric">
-              <Gauge aria-hidden className="h-3.5 w-3.5" />
-              {product.fitment.length} fitments
-            </span>
+            {product.fitmentEnabled && product.fitment.length > 0 ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-electric">
+                <Gauge aria-hidden className="h-3.5 w-3.5" />
+                Vehicle applications available
+              </span>
+            ) : null}
           </div>
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-500">

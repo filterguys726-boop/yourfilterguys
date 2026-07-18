@@ -47,12 +47,12 @@ export default async function HomePage() {
               Oil, air, cabin, fuel, and service parts
             </p>
             <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.04] text-white sm:text-5xl lg:text-6xl">
-              Filters that fit the first time.
+              Filters and diesel parts, made easier.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg">
-              A sharper way to buy automotive filters and service parts:
-              fitment clarity, real stock status, and checkout built for U.S.
-              drivers and shops.
+              Shop automotive filters and service parts with clear product
+              details, real stock status, and checkout built for U.S. drivers
+              and shops.
             </p>
             <form action="/products" className="mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row">
               <label className="relative flex-1">
@@ -64,7 +64,7 @@ export default async function HomePage() {
                 <input
                   name="q"
                   className="h-11 w-full rounded-md border border-white/20 bg-white px-3 py-2 pl-10 text-sm text-slate-900 shadow-sm focus-ring"
-                  placeholder="Search by part, SKU, vehicle, or brand"
+                  placeholder="Search by part, SKU, or brand"
                 />
               </label>
               <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-shopred px-5 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 focus-ring" type="submit">
@@ -75,7 +75,7 @@ export default async function HomePage() {
             <div className="mt-6 grid max-w-2xl gap-3 text-sm text-slate-200 sm:grid-cols-3">
               <div className="flex items-center gap-2">
                 <ShieldCheck aria-hidden className="h-4 w-4 text-amber-200" />
-                Fitment checked
+                Part-number support
               </div>
               <div className="flex items-center gap-2">
                 <BadgeCheck aria-hidden className="h-4 w-4 text-amber-200" />
@@ -97,7 +97,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex min-h-full items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950/90 px-2 py-1 shadow-panel lg:py-0">
+          <div className="relative flex self-center items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950/80 px-2 py-1 shadow-panel lg:py-0">
             <Image
               src="/hero-diesel-parts-overlay.png"
               alt="Need help finding your diesel part promotional graphic from The Filter Guys"
@@ -211,21 +211,16 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_.9fr] lg:px-8">
           <div className="flex flex-col justify-center">
             <p className="text-sm font-black uppercase text-amber-200">
-              Fitment confidence
+              Product confidence
             </p>
             <h2 className="mt-2 text-3xl font-black text-white">
               Know before you buy.
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-200">
-              Product pages are built around fitment clarity, part numbers, and
-              variant-level stock so buyers can confirm the right part before
-              checkout.
+              Product pages keep part numbers, descriptions, inventory, and
+              shipping details visible where buyers make decisions.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/fitment-help" className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-black text-ink shadow-sm transition hover:bg-slate-100 focus-ring">
-                Fitment help
-                <ArrowRight aria-hidden className="h-4 w-4" />
-              </Link>
               <Link href="/contact" className="inline-flex items-center justify-center gap-2 rounded-md border border-white/25 bg-white/10 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-white/15 focus-ring">
                 Contact support
               </Link>
@@ -240,8 +235,8 @@ export default async function HomePage() {
               },
               {
                 icon: Wrench,
-                title: "Vehicle details",
-                text: "Year, make, model, engine, trim, and notes are shown together."
+                title: "Service details",
+                text: "Descriptions and product references are easy to review before checkout."
               },
               {
                 icon: PackageCheck,

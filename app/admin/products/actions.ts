@@ -249,6 +249,7 @@ export async function upsertProductAction(formData: FormData) {
     image_url: imageUrl,
     image_alt: textValue(formData, "image_alt") || textValue(formData, "name"),
     active: formData.get("active") === "on",
+    fitment_enabled: formData.get("fitment_enabled") === "on",
     inventory_behavior: String(
       formData.get("inventory_behavior") ?? "in_stock"
     ),
@@ -257,10 +258,20 @@ export async function upsertProductAction(formData: FormData) {
 
   if (productId) {
     const existingSlug = await getProductSlug(serviceSupabase, productId);
-    const { error } = await serviceSupabase
+    let { error } = await serviceSupabase
       .from("products")
       .update(payload)
       .eq("id", productId);
+
+    if (error?.code === "42703") {
+      const { fitment_enabled: _fitmentEnabled, ...legacyPayload } = payload;
+      void _fitmentEnabled;
+      const fallbackResult = await serviceSupabase
+        .from("products")
+        .update(legacyPayload)
+        .eq("id", productId);
+      error = fallbackResult.error;
+    }
 
     if (error) {
       redirect(errorPath(`/admin/products/${productId}`, error));
@@ -289,14 +300,31 @@ export async function upsertProductAction(formData: FormData) {
     redirect(`/admin/products/${productId}`);
   }
 
-  const { data, error } = await serviceSupabase
+  let { data, error } = await serviceSupabase
     .from("products")
     .insert(payload)
     .select("id")
     .single();
 
-  if (error) {
-    redirect(errorPath("/admin/products/new", error));
+  if (error?.code === "42703") {
+    const { fitment_enabled: _fitmentEnabled, ...legacyPayload } = payload;
+    void _fitmentEnabled;
+    const fallbackResult = await serviceSupabase
+      .from("products")
+      .insert(legacyPayload)
+      .select("id")
+      .single();
+    data = fallbackResult.data;
+    error = fallbackResult.error;
+  }
+
+  if (error || !data) {
+    redirect(
+      errorPath(
+        "/admin/products/new",
+        error ?? new Error("The product could not be created.")
+      )
+    );
   }
 
   try {
@@ -400,6 +428,21 @@ export async function createFitmentAction(formData: FormData) {
   await assertAdmin();
   const serviceSupabase = createServiceSupabaseClient();
   const productId = textValue(formData, "product_id");
+
+  const { data: product } = await serviceSupabase
+    .from("products")
+    .select("fitment_enabled")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (!product?.fitment_enabled) {
+    redirect(
+      errorPath(
+        `/admin/products/${productId}`,
+        new Error("Enable storefront fitment before adding fitment records.")
+      )
+    );
+  }
 
   const { error } = await serviceSupabase.from("vehicle_fitment").insert({
     product_id: productId,

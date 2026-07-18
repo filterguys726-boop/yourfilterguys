@@ -213,6 +213,15 @@ export function ProductForm({
           />
           Active storefront product
         </label>
+        <label className="flex items-center gap-3 rounded-md bg-slate-50 p-3 text-sm font-semibold text-slate-700">
+          <input
+            type="checkbox"
+            name="fitment_enabled"
+            defaultChecked={product?.fitmentEnabled ?? false}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          Show vehicle fitment on storefront
+        </label>
       </div>
 
       <button type="submit" className="button-primary mt-6">

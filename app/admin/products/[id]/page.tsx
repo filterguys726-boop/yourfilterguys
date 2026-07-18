@@ -259,6 +259,7 @@ export default async function AdminProductPage({
           </form>
         </section>
 
+        {product.fitmentEnabled ? (
         <section className="surface overflow-hidden">
           <div className="border-b border-slate-200 p-5">
             <h2 className="text-2xl font-black text-ink">Fitment</h2>
@@ -320,6 +321,15 @@ export default async function AdminProductPage({
             </button>
           </form>
         </section>
+        ) : (
+          <section className="surface p-5">
+            <h2 className="text-2xl font-black text-ink">Vehicle fitment</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Fitment is disabled for this product. Enable “Show vehicle fitment
+              on storefront” in the product form and save before adding records.
+            </p>
+          </section>
+        )}
 
         <section className="surface border border-red-200 bg-red-50 p-6">
           <p className="text-sm font-black uppercase text-shopred">Danger zone</p>

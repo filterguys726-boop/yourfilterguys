@@ -3,7 +3,7 @@ export const brand = {
   domain: "yourfilterguys.com",
   supportEmail: "support@yourfilterguys.com",
   logoPath: "/yourfilterguys-logo.jpg",
-  tagline: "Automotive filters and parts with fitment clarity",
+  tagline: "Automotive filters and service parts",
   description:
-    "Your Filter Guys sells automotive filters and service parts with clear vehicle fitment, variant-level inventory, and secure checkout."
+    "Your Filter Guys sells automotive filters and service parts with clear product information, variant-level inventory, and secure checkout."
 };

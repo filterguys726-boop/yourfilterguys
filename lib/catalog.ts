@@ -19,6 +19,7 @@ type ProductRow = {
   image_url: string | null;
   image_alt: string | null;
   active: boolean;
+  fitment_enabled: boolean;
   inventory_behavior: CatalogProduct["inventoryBehavior"];
   shipping_notes: string | null;
   categories: Category | Category[] | null;
@@ -88,6 +89,7 @@ function mapProduct(
     imageAlt: gallery[0]?.alt ?? fallbackImageAlt,
     imageGallery: gallery,
     active: row.active,
+    fitmentEnabled: row.fitment_enabled ?? false,
     inventoryBehavior: row.inventory_behavior,
     shippingNotes: row.shipping_notes,
     variants: row.product_variants.map<ProductVariant>((variant) => ({
@@ -162,7 +164,7 @@ function filterSamples(options?: { categorySlug?: string; query?: string }) {
           product.sku,
           product.shortDescription,
           product.category.name,
-          ...product.fitment.map(
+          ...(product.fitmentEnabled ? product.fitment : []).map(
             (fitment) =>
               `${fitment.year} ${fitment.make} ${fitment.model} ${fitment.engine}`
           )
@@ -206,38 +208,53 @@ export async function getProducts(options?: {
     return filterSamples(options);
   }
 
-  let productQuery = supabase
-    .from("products")
-    .select(
-      `
+  const runProductQuery = async (includeFitmentFlag: boolean) => {
+    let productQuery = supabase
+      .from("products")
+      .select(
+        `
       id,name,slug,sku,brand,short_description,description,image_url,image_alt,
-      active,inventory_behavior,shipping_notes,
+      active,${includeFitmentFlag ? "fitment_enabled," : ""}inventory_behavior,shipping_notes,
       categories:category_id(id,name,slug,description),
       product_variants(id,product_id,name,sku,price_cents,cost_cents,stock_quantity,backorder_allowed,weight_oz,dimensions_in,active),
       vehicle_fitment(id,product_id,year,make,model,engine,trim,notes)
     `
-    )
-    .order("name");
+      )
+      .order("name");
 
-  if (!options?.includeInactive) {
-    productQuery = productQuery.eq("active", true);
-  }
-
-  if (options?.categorySlug) {
-    const categories = await getCategories();
-    const category = categories.find((item) => item.slug === options.categorySlug);
-    if (category) {
-      productQuery = productQuery.eq("category_id", category.id);
+    if (!options?.includeInactive) {
+      productQuery = productQuery.eq("active", true);
     }
+
+    if (options?.categorySlug) {
+      const categories = await getCategories();
+      const category = categories.find((item) => item.slug === options.categorySlug);
+      if (category) {
+        productQuery = productQuery.eq("category_id", category.id);
+      }
+    }
+
+    return productQuery;
+  };
+
+  let queryResult = await runProductQuery(true);
+  let hasFitmentFlag = true;
+
+  if (queryResult.error?.code === "42703") {
+    queryResult = await runProductQuery(false);
+    hasFitmentFlag = false;
   }
 
-  const { data, error } = await productQuery;
+  const { data, error } = queryResult;
 
   if (error || !data) {
     return filterSamples(options);
   }
 
-  const rows = data as unknown as ProductRow[];
+  const rows = (data as unknown as ProductRow[]).map((row) => ({
+    ...row,
+    fitment_enabled: hasFitmentFlag ? row.fitment_enabled : false
+  }));
   const imagesByProductId = await getProductImagesByProductId(
     rows.map((product) => product.id)
   );
@@ -254,7 +271,7 @@ export async function getProducts(options?: {
         product.sku,
         product.shortDescription,
         product.category.name,
-        ...product.fitment.map(
+        ...(product.fitmentEnabled ? product.fitment : []).map(
           (fitment) =>
             `${fitment.year} ${fitment.make} ${fitment.model} ${fitment.engine}`
         )

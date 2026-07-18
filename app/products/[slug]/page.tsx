@@ -59,7 +59,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <p className="mt-4 text-base leading-7 text-slate-600">
                   {product.description}
                 </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <div className={`mt-6 grid gap-3 ${product.fitmentEnabled && product.fitment.length > 0 ? "sm:grid-cols-2" : ""}`}>
                   <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                     <p className="text-xs font-bold uppercase text-slate-500">
                       Starting at
@@ -68,14 +68,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       {lowestPrice === null ? "Pending" : formatMoney(lowestPrice)}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-bold uppercase text-slate-500">
-                      Fitment rows
-                    </p>
-                    <p className="mt-1 text-3xl font-black text-ink">
-                      {product.fitment.length}
-                    </p>
-                  </div>
+                  {product.fitmentEnabled && product.fitment.length > 0 ? (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-xs font-bold uppercase text-slate-500">
+                        Vehicle applications
+                      </p>
+                      <p className="mt-1 text-3xl font-black text-ink">
+                        {product.fitment.length}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
                 <dl className="mt-6 grid gap-3 text-sm text-slate-600">
                   <div className="flex gap-3">
@@ -114,7 +116,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
-        <FitmentTable fitment={product.fitment} />
+        {product.fitmentEnabled && product.fitment.length > 0 ? (
+          <FitmentTable fitment={product.fitment} />
+        ) : null}
       </section>
     </div>
   );

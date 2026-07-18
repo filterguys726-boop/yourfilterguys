@@ -1,7 +1,7 @@
 insert into public.categories (id, name, slug, description)
 values
   ('11111111-1111-4111-8111-111111111111', 'Engine Filters', 'engine-filters', 'Oil, air, and cabin filters for popular U.S. vehicles.'),
-  ('33333333-3333-4333-8333-333333333333', 'Service Kits', 'service-kits', 'Bundled maintenance parts with clear fitment notes.')
+  ('33333333-3333-4333-8333-333333333333', 'Service Kits', 'service-kits', 'Bundled maintenance parts for common service jobs.')
 on conflict (slug) do update
 set name = excluded.name,
     description = excluded.description;
@@ -19,7 +19,7 @@ values
     'premium-synthetic-oil-filter-xg10575',
     'Your Filter Guys',
     'Extended-life spin-on oil filter for high-mileage service.',
-    'A premium synthetic media oil filter designed for clean oil flow, high dirt-holding capacity, and easy service intervals on compatible V6 and V8 applications.',
+    'A premium synthetic media oil filter designed for clean oil flow, high dirt-holding capacity, and easy service intervals.',
     '/product-oil-filter.svg',
     'Premium spin-on oil filter',
     true,
@@ -34,7 +34,7 @@ values
     'activated-carbon-cabin-air-filter-cf11819',
     'ClearCabin',
     'Cabin filter with odor control for daily commuting.',
-    'Activated carbon cabin filtration helps reduce dust, pollen, and odors while maintaining HVAC airflow on compatible sedans and crossovers.',
+    'Activated carbon cabin filtration helps reduce dust, pollen, and odors while maintaining HVAC airflow.',
     '/product-cabin-filter.svg',
     'Pleated cabin air filter',
     true,

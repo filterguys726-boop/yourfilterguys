@@ -24,8 +24,8 @@ export function SiteFooter() {
             </div>
           </div>
           <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600">
-            Automotive filters and service components with clear variant and
-            fitment data for U.S. vehicles.
+            Automotive filters and service components with clear product,
+            inventory, and ordering information.
           </p>
         </div>
         <div>
@@ -42,7 +42,7 @@ export function SiteFooter() {
           <div className="mt-3 grid gap-2 text-sm text-slate-600">
             <Link href="/category/engine-filters">Engine filters</Link>
             <Link href="/category/service-kits">Service kits</Link>
-            <Link href="/fitment-help">Fitment help</Link>
+            <Link href="/contact">Product help</Link>
           </div>
         </div>
         <div>

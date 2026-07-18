@@ -87,7 +87,7 @@ Run through this before sharing with the client:
 
 - Homepage loads on desktop and mobile.
 - Product listing and category pages load.
-- Product pages show variants, inventory, and fitment rows.
+- Product pages show variants, inventory, and any explicitly enabled product data.
 - Cart add/remove/update works.
 - Signup, login, logout, and password reset work.
 - Admin user can access admin pages.
@@ -95,11 +95,11 @@ Run through this before sharing with the client:
 - Stripe webhook creates orders and reduces inventory.
 - Customer order history shows paid orders.
 - Footer launch pages are reachable.
-- Client confirms product copy, pricing, SKUs, and fitment.
+- Client confirms product copy, pricing, and SKUs.
 
 ## 7. Current MVP Notes
 
 - Real product photos are included for two Detroit Diesel sample products.
-- Fitment rows are realistic placeholders for review and should be confirmed
-  with supplier or client data before accepting real orders.
+- Vehicle fitment is disabled by default and can be enabled per product after
+  verified application data has been added.
 - The app falls back to local sample products if Supabase is not configured.

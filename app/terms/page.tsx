@@ -17,10 +17,9 @@ export default function TermsPage() {
     >
       <PolicySection title="Product Information">
         <p>
-          We work to keep product descriptions, SKUs, fitment rows, prices, and
-          stock information accurate. Automotive fitment can vary by production
-          date, engine, trim, package, and prior vehicle modifications. Always
-          review the product page fitment notes before purchase and installation.
+          We work to keep product descriptions, SKUs, prices, and stock
+          information accurate. Review the product description, part number,
+          and package details before purchase and installation.
         </p>
       </PolicySection>
 
@@ -48,8 +47,8 @@ export default function TermsPage() {
           Parts should be installed by a qualified person using proper tools,
           safety practices, and vehicle-specific procedures. Stop installation if
           a part appears damaged, incorrect, contaminated, or unsafe. We are not
-          responsible for damage caused by improper installation, misuse,
-          modified vehicles, or ignored fitment notes.
+          responsible for damage caused by improper installation, misuse, or
+          modified vehicles.
         </p>
       </PolicySection>
 

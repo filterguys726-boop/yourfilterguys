@@ -11,7 +11,7 @@ export const sampleCategories: Category[] = [
     id: "cat-service-kits",
     name: "Service Kits",
     slug: "service-kits",
-    description: "Bundled maintenance parts with clear fitment notes."
+    description: "Bundled maintenance parts for common service jobs."
   }
 ];
 
@@ -25,7 +25,7 @@ export const sampleProducts: CatalogProduct[] = [
     shortDescription:
       "Fuel filter insert kit with seals for Detroit DD13 and DD15 service.",
     description:
-      "A Detroit DD13/DD15 fuel filter insert kit with included O-rings and service components. Verify OE number A4720921705 and vehicle fitment notes before purchase or installation.",
+      "A Detroit DD13/DD15 fuel filter insert kit with included O-rings and service components. Verify OE number A4720921705 before purchase or installation.",
     category: sampleCategories[1],
     imageUrl: "/detroit-dd13-dd15-fuel-filter-kit-a4720921705-1.png",
     imageAlt:
@@ -41,6 +41,7 @@ export const sampleProducts: CatalogProduct[] = [
       }
     ],
     active: true,
+    fitmentEnabled: false,
     inventoryBehavior: "in_stock",
     shippingNotes: "Ships boxed with protective packing for filter media.",
     variants: [
@@ -98,7 +99,7 @@ export const sampleProducts: CatalogProduct[] = [
     sku: "A4720921205",
     brand: "Detroit Diesel",
     shortDescription:
-      "Fuel Pro 482 replacement element kit for compatible Detroit diesel applications.",
+      "Fuel Pro 482 replacement element kit for Detroit diesel service.",
     description:
       "A Detroit Diesel Fuel Pro 482 replacement element kit. Package label lists A4720921205 filter and A0209977545 O-rings. Confirm the Fuel Pro 482 housing and OE part number before ordering.",
     category: sampleCategories[0],
@@ -106,6 +107,7 @@ export const sampleProducts: CatalogProduct[] = [
     imageAlt:
       "Detroit Diesel Fuel Pro 482 replacement element A4720921205 with box",
     active: true,
+    fitmentEnabled: false,
     inventoryBehavior: "in_stock",
     shippingNotes: "Ships in manufacturer box with protective packing.",
     variants: [
@@ -164,11 +166,12 @@ export const sampleProducts: CatalogProduct[] = [
     brand: "Your Filter Guys",
     shortDescription: "Extended-life spin-on oil filter for high-mileage service.",
     description:
-      "A premium synthetic media oil filter designed for clean oil flow, high dirt-holding capacity, and easy service intervals on compatible V6 and V8 applications.",
+      "A premium synthetic media oil filter designed for clean oil flow, high dirt-holding capacity, and easy service intervals.",
     category: sampleCategories[0],
     imageUrl: "/product-oil-filter.svg",
     imageAlt: "Premium spin-on oil filter",
     active: true,
+    fitmentEnabled: false,
     inventoryBehavior: "in_stock",
     shippingNotes: "Ships in a protective corrugated sleeve.",
     variants: [
@@ -240,11 +243,12 @@ export const sampleProducts: CatalogProduct[] = [
     brand: "ClearCabin",
     shortDescription: "Cabin filter with odor control for daily commuting.",
     description:
-      "Activated carbon cabin filtration helps reduce dust, pollen, and odors while maintaining HVAC airflow on compatible sedans and crossovers.",
+      "Activated carbon cabin filtration helps reduce dust, pollen, and odors while maintaining HVAC airflow.",
     category: sampleCategories[0],
     imageUrl: "/product-cabin-filter.svg",
     imageAlt: "Pleated cabin air filter",
     active: true,
+    fitmentEnabled: false,
     inventoryBehavior: "backorder_allowed",
     shippingNotes: "Lightweight item eligible for standard shipping.",
     variants: [

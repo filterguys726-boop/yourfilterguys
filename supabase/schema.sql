@@ -23,6 +23,7 @@ create table if not exists public.products (
   image_url text,
   image_alt text,
   active boolean not null default true,
+  fitment_enabled boolean not null default false,
   inventory_behavior text not null default 'in_stock'
     check (inventory_behavior in ('in_stock', 'sold_out', 'backorder_allowed')),
   shipping_notes text,
