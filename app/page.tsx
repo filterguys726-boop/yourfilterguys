@@ -97,7 +97,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex self-center items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950/80 px-2 py-1 shadow-panel lg:py-0">
+          <div className="relative flex self-center items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950/80 p-2 shadow-panel">
             <Image
               src="/hero-diesel-parts-overlay.png"
               alt="Need help finding your diesel part promotional graphic from The Filter Guys"
