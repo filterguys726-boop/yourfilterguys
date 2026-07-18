@@ -49,8 +49,8 @@ export function ThemeToggle({
       onClick={toggleTheme}
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
-      data-enter="fade"
-      data-enter-delay="6"
+      data-enter={expanded ? undefined : "fade"}
+      data-enter-delay={expanded ? undefined : "6"}
     >
       {expanded ? (
         <span>{isDark ? "Use light mode" : "Use dark mode"}</span>
