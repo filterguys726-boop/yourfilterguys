@@ -36,6 +36,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <Link
             href="/products"
             className="inline-flex items-center gap-2 text-sm font-bold text-electric"
+            data-reveal="fade-right"
           >
             <ArrowLeft aria-hidden className="h-4 w-4" />
             Back to products
@@ -43,9 +44,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
           <div className="mt-7 grid gap-8 lg:grid-cols-[1fr_420px]">
             <div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]">
-              <ProductGallery images={gallery} />
+              <div data-reveal="fade-right" data-reveal-delay="1">
+                <ProductGallery images={gallery} />
+              </div>
 
-              <div>
+              <div data-reveal="fade-up" data-reveal-delay="2">
                 <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-500">
                   <span>{product.brand}</span>
                   <span className="h-1 w-1 rounded-full bg-slate-300" />
@@ -110,14 +113,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             </div>
 
-            <AddToCartPanel product={product} />
+            <div data-reveal="fade-left" data-reveal-delay="3">
+              <AddToCartPanel product={product} />
+            </div>
           </div>
         </div>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:px-8">
         {product.fitmentEnabled && product.fitment.length > 0 ? (
-          <FitmentTable fitment={product.fitment} />
+          <div data-reveal="fade-up">
+            <FitmentTable fitment={product.fitment} />
+          </div>
         ) : null}
       </section>
     </div>

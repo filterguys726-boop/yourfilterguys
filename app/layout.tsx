@@ -3,6 +3,7 @@ import "./globals.css";
 import { CartProvider } from "@/components/cart-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { MotionController } from "@/components/motion-controller";
 import { brand } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default function RootLayout({
       </head>
       <body>
         <CartProvider>
+          <MotionController />
           <SiteHeader />
           <main className="min-h-screen">{children}</main>
           <SiteFooter />
