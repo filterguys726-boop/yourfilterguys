@@ -53,8 +53,8 @@ export function SiteHeader() {
               priority
             />
           </span>
-          <span className="hidden min-w-0 overflow-hidden leading-none sm:block">
-            <span className="brand-condensed block whitespace-nowrap text-base uppercase text-ink sm:text-2xl">
+          <span className="min-w-0 overflow-hidden leading-none">
+            <span className="brand-condensed block whitespace-nowrap text-[11px] uppercase text-ink min-[350px]:text-[13px] sm:text-2xl">
               <span>Your </span>
               <span className="text-shopred">Filter</span>
               <span> Guys</span>
