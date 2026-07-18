@@ -165,7 +165,7 @@ ${addressText}
 
 Status: ${order.fulfillmentStatus}
 
-Questions? Reply to this email or contact support@yourfilterguys.com.`;
+Questions? Reply to this email or contact filterguys726@gmail.com.`;
 
   const customerHtml = emailShell(
     `Order ${order.orderNumber} confirmed`,
@@ -280,7 +280,7 @@ export async function sendOrderStatusEmail(order: OrderEmailData) {
 Order: ${order.orderNumber}
 Status: ${order.fulfillmentStatus}${tracking}
 
-Questions? Reply to this email or contact support@yourfilterguys.com.`;
+Questions? Reply to this email or contact filterguys726@gmail.com.`;
   const html = emailShell(
     `Order ${order.orderNumber} updated`,
     `
