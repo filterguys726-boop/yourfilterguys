@@ -21,10 +21,12 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
   font-family:
@@ -190,6 +192,18 @@ img {
 
 .motion-ready [data-reveal="fade-right"] {
   transform: translate3d(-28px, 0, 0);
+}
+
+@media (max-width: 639px) {
+  .motion-ready [data-reveal="fade-left"],
+  .motion-ready [data-reveal="fade-right"] {
+    transform: translate3d(0, 24px, 0);
+  }
+
+  .motion-ready [data-reveal="fade-left"].is-visible,
+  .motion-ready [data-reveal="fade-right"].is-visible {
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .motion-ready [data-reveal].is-visible {
