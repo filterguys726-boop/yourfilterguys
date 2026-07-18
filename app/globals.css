@@ -8,6 +8,12 @@
   --foreground: #111827;
 }
 
+:root.dark {
+  color-scheme: dark;
+  --background: #060b12;
+  --foreground: #f8fafc;
+}
+
 * {
   box-sizing: border-box;
   letter-spacing: 0;
@@ -24,6 +30,24 @@ body {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+}
+
+body,
+header,
+footer,
+main,
+section,
+article,
+aside,
+nav,
+div,
+input,
+select,
+textarea,
+button {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
 }
 
 a {
@@ -69,5 +93,140 @@ img {
 
   .surface {
     @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+  }
+}
+
+/* Dark theme: graphite surfaces, crisp white type, and warm filter-gold accents. */
+.dark .surface {
+  border-color: #303946;
+  background: #0c131d;
+  box-shadow: 0 18px 50px rgb(0 0 0 / 28%);
+}
+
+.dark .field {
+  border-color: #3b4655;
+  background: #080e16;
+  color: #f8fafc;
+}
+
+.dark .field::placeholder {
+  color: #7f8b9a;
+}
+
+.dark .label {
+  color: #cbd5e1;
+}
+
+.dark .button-primary {
+  background: #f1b82d;
+  color: #070b11;
+}
+
+.dark .button-primary:hover {
+  background: #ffd35a;
+}
+
+.dark .button-secondary {
+  border-color: #586474;
+  background: #0a1018;
+  color: #f8fafc;
+}
+
+.dark .button-secondary:hover {
+  border-color: #f1b82d;
+  background: #151d28;
+}
+
+.dark .button-danger {
+  color: #070b11;
+}
+
+.dark .focus-ring:focus {
+  --tw-ring-color: #f1b82d;
+  --tw-ring-offset-color: #060b12;
+}
+
+.dark .bg-white,
+.dark .bg-paper {
+  background-color: #060b12;
+}
+
+.dark .bg-white\/95 {
+  background-color: rgb(6 11 18 / 95%);
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-100 {
+  background-color: #111923;
+}
+
+.dark .bg-blue-50,
+.dark .bg-teal-50 {
+  background-color: rgb(241 184 45 / 12%);
+}
+
+.dark .bg-red-50 {
+  background-color: rgb(127 29 29 / 24%);
+}
+
+.dark .text-ink,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: #f8fafc;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-slate-400,
+.dark .text-bay {
+  color: #aeb8c5;
+}
+
+.dark .text-electric {
+  color: #f1b82d;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: #303946;
+}
+
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #303946;
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover {
+  background-color: #17212d;
+}
+
+.dark .shadow-sm,
+.dark .shadow-panel {
+  box-shadow: 0 16px 42px rgb(0 0 0 / 30%);
+}
+
+.dark .surface {
+  background: #0c131d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  header,
+  footer,
+  main,
+  section,
+  article,
+  aside,
+  nav,
+  div,
+  input,
+  select,
+  textarea,
+  button {
+    transition: none;
   }
 }

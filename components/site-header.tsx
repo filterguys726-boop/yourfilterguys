@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Menu, Search, ShoppingCart, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/components/cart-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { brand } from "@/lib/brand";
 
 const links = [
@@ -55,6 +56,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             href="/products"
             className="button-secondary hidden px-3 sm:inline-flex"
