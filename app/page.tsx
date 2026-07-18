@@ -99,7 +99,7 @@ export default async function HomePage() {
 
           <div className="relative flex min-h-full items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950 p-2 shadow-panel">
             <Image
-              src="/hero-diesel-parts-help.png"
+              src="/hero-diesel-parts-overlay.png"
               alt="Need help finding your diesel part promotional graphic from The Filter Guys"
               width={1536}
               height={1024}
