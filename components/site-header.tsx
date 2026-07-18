@@ -59,7 +59,7 @@ export function SiteHeader() {
               <span className="text-shopred">Filter</span>
               <span> Guys</span>
             </span>
-            <span className="brand-tagline -mt-0.5 block whitespace-nowrap text-[7px] uppercase leading-none text-slate-600 min-[350px]:text-[8px] sm:text-xs">
+            <span className="brand-tagline mt-1 block whitespace-nowrap text-[7px] uppercase leading-none text-slate-600 min-[350px]:text-[8px] sm:-mt-0.5 sm:text-xs">
               Real Parts. Real Results.
             </span>
           </span>
