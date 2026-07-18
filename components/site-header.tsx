@@ -53,7 +53,7 @@ export function SiteHeader() {
               priority
             />
           </span>
-          <span className="hidden min-w-0 overflow-hidden leading-none min-[350px]:block">
+          <span className="hidden min-w-0 overflow-hidden leading-none sm:block">
             <span className="brand-condensed block whitespace-nowrap text-base uppercase text-ink sm:text-2xl">
               <span>Your </span>
               <span className="text-shopred">Filter</span>
@@ -80,17 +80,19 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <ThemeToggle />
+          <div className="hidden lg:block">
+            <ThemeToggle />
+          </div>
           <Link
             href="/products"
-            className="button-secondary hidden h-10 w-10 p-0 sm:inline-flex"
+            className="button-secondary hidden h-10 w-10 p-0 lg:inline-flex"
             aria-label="Search products"
             data-enter="fade"
             data-enter-delay="7"
           >
             <Search aria-hidden className="h-4 w-4" />
           </Link>
-          <Link href="/account" data-enter="fade" data-enter-delay="8" className="button-secondary hidden px-3 sm:inline-flex">
+          <Link href="/account" data-enter="fade" data-enter-delay="8" className="button-secondary hidden px-3 lg:inline-flex">
             <UserRound aria-hidden className="h-4 w-4" />
             <span className="hidden md:inline">Account</span>
           </Link>
@@ -137,6 +139,9 @@ export function SiteHeader() {
             >
               Account
             </Link>
+            <div className="px-3 py-2">
+              <ThemeToggle expanded />
+            </div>
           </div>
         </nav>
       ) : null}
