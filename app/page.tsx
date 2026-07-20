@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -33,60 +32,72 @@ export default async function HomePage() {
   return (
     <div>
       <section
-        className="overflow-hidden border-b border-slate-200 bg-slate-950 bg-cover bg-center text-white"
+        className="relative overflow-hidden border-b border-slate-200 bg-slate-950 bg-cover bg-center text-white"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.22), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.9) 0%, rgba(11, 43, 79, 0.2) 52%, rgba(5, 12, 24, 0.5) 100%), url('/yourfilterguys-hero.jpg')",
+            "radial-gradient(circle at 74% 18%, rgba(198, 149, 44, 0.18), transparent 30%), linear-gradient(135deg, rgba(5, 12, 24, 0.92) 0%, rgba(11, 43, 79, 0.42) 52%, rgba(5, 12, 24, 0.68) 100%), url('/yourfilterguys-hero.jpg')",
+          backgroundSize: "138%",
+          backgroundPosition: "-120px 0",
           backgroundRepeat: "no-repeat"
         }}
       >
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[.86fr_1fr] lg:px-8 lg:py-20">
-          <div className="flex flex-col justify-center">
-            <p className="inline-flex w-fit items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black uppercase text-amber-200 shadow-sm">
-              <PackageCheck aria-hidden className="h-4 w-4" />
+        <div aria-hidden className="absolute inset-0 backdrop-blur-[2px]" />
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+          <div className="flex max-w-3xl flex-col justify-center">
+            <p data-enter="up" data-enter-delay="1" className="inline-flex w-fit items-center gap-2 rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-black uppercase text-amber-200 shadow-sm">
+              <PackageCheck aria-hidden className="h-4 w-4 text-shopred" />
               Oil, air, cabin, fuel, and service parts
             </p>
-            <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.04] text-white sm:text-5xl lg:text-6xl">
-              Filters and diesel parts, made easier.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-200 sm:text-lg">
-              Shop automotive filters and service parts with clear product
-              details, real stock status, and checkout built for U.S. drivers
-              and shops.
+            <div data-enter="up" data-enter-delay="2">
+              <h1 className="brand-condensed hero-headline-shadow mt-5 max-w-3xl text-5xl uppercase leading-[0.92] sm:text-6xl lg:text-7xl">
+                <span className="block text-white">Filters &amp; diesel parts.</span>
+                <span className="mt-2 block text-shopred">We&apos;ve got you covered.</span>
+              </h1>
+            </div>
+            <p data-enter="up" data-enter-delay="3" className="mt-5 max-w-3xl text-xl leading-8 text-slate-200 sm:text-2xl sm:leading-9">
+              OEM &amp; aftermarket filters for Cummins, Detroit,
+              <br className="hidden sm:block" /> Paccar, Caterpillar, Volvo &amp; more.
             </p>
-            <form action="/products" className="mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row">
+            <form action="/products" data-enter="up" data-enter-delay="4" className="mt-8 flex max-w-2xl flex-col gap-3 sm:flex-row">
               <label className="relative flex-1">
                 <Search
                   aria-hidden
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500"
                 />
                 <span className="sr-only">Search products</span>
                 <input
                   name="q"
-                  className="h-11 w-full rounded-md border border-white/20 bg-white px-3 py-2 pl-10 text-sm text-slate-900 shadow-sm focus-ring"
+                  className="hero-search-field h-14 w-full rounded-md border px-4 py-3 pl-12 text-base shadow-sm focus-ring"
                   placeholder="Search by part, SKU, or brand"
                 />
               </label>
-              <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-shopred px-5 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 focus-ring" type="submit">
-                <Search aria-hidden className="h-4 w-4" />
+              <button className="inline-flex h-14 items-center justify-center gap-2 rounded-md bg-shopred px-7 py-3 text-base font-black text-slate-950 shadow-sm transition hover:bg-amber-400 focus-ring" type="submit">
+                <Search aria-hidden className="h-5 w-5" />
                 Search
               </button>
             </form>
+            <div data-enter="fade" data-enter-delay="5" className="mt-4 flex max-w-2xl items-start gap-2 rounded-md border border-white/15 bg-slate-950/70 px-3 py-2.5 text-sm leading-5 text-slate-200 backdrop-blur-sm">
+              <Wrench aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-shopred" />
+              <p>
+                Can&apos;t find a part? We can source it. Send your VIN, engine serial
+                number, equipment model, or existing part number.
+              </p>
+            </div>
             <div className="mt-6 grid max-w-2xl gap-3 text-sm text-slate-200 sm:grid-cols-3">
-              <div className="flex items-center gap-2">
-                <ShieldCheck aria-hidden className="h-4 w-4 text-amber-200" />
-                Part-number support
+              <div data-enter="up" data-enter-delay="6" className="flex items-center gap-2">
+                <BadgeCheck aria-hidden className="h-4 w-4 text-shopred" />
+                Clear product details
               </div>
-              <div className="flex items-center gap-2">
-                <BadgeCheck aria-hidden className="h-4 w-4 text-amber-200" />
-                Variant-level stock
+              <div data-enter="up" data-enter-delay="7" className="flex items-center gap-2">
+                <ShieldCheck aria-hidden className="h-4 w-4 text-shopred" />
+                Secure checkout
               </div>
-              <div className="flex items-center gap-2">
-                <Truck aria-hidden className="h-4 w-4 text-amber-200" />
+              <div data-enter="up" data-enter-delay="8" className="flex items-center gap-2">
+                <Truck aria-hidden className="h-4 w-4 text-shopred" />
                 U.S. shipping
               </div>
             </div>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div data-enter="fade" data-enter-delay="9" className="mt-7 flex flex-wrap gap-3">
               <Link href="/products" className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-black text-ink shadow-sm transition hover:bg-slate-100 focus-ring">
                 Find my part
                 <ArrowRight aria-hidden className="h-4 w-4" />
@@ -97,17 +108,6 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex self-center items-center overflow-hidden rounded-lg border border-white/15 bg-slate-950/80 p-2 shadow-panel">
-            <Image
-              src="/hero-diesel-parts-overlay.png"
-              alt="Need help finding your diesel part promotional graphic from The Filter Guys"
-              width={1672}
-              height={941}
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="h-auto w-full self-center rounded-md object-contain"
-              priority
-            />
-          </div>
         </div>
       </section>
 
@@ -125,7 +125,7 @@ export default async function HomePage() {
               <ArrowRight aria-hidden className="h-4 w-4" />
             </Link>
           </div>
-          <div className="mt-7">
+          <div data-reveal="fade-up" data-reveal-delay="1" className="mt-7">
             <FeaturedPartsSlider products={featured} />
           </div>
         </div>
@@ -134,7 +134,7 @@ export default async function HomePage() {
       {brands.length ? (
         <section className="border-b border-slate-200 bg-paper">
           <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div data-reveal="fade-up" className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-sm font-black uppercase text-bay">
                   Shop by brand
@@ -154,6 +154,7 @@ export default async function HomePage() {
                   key={brandName}
                   href={`/products?q=${encodeURIComponent(brandName)}`}
                   className="surface p-5 transition hover:-translate-y-0.5 hover:shadow-panel"
+                  data-reveal="fade-up"
                 >
                   <p className="text-xl font-black text-ink">{brandName}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -172,7 +173,7 @@ export default async function HomePage() {
 
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div data-reveal="fade-up" className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-black uppercase text-electric">
                 Shop by category
@@ -192,6 +193,7 @@ export default async function HomePage() {
                 key={category.id}
                 href={`/category/${category.slug}`}
                 className="surface p-5 transition hover:-translate-y-0.5 hover:shadow-panel"
+                data-reveal="fade-up"
               >
                 <p className="text-xl font-black text-ink">{category.name}</p>
                 <p className="mt-2 min-h-12 text-sm leading-6 text-slate-600">
@@ -209,7 +211,7 @@ export default async function HomePage() {
 
       <section className="bg-[radial-gradient(circle_at_82%_12%,rgba(198,149,44,0.22),transparent_28%),linear-gradient(135deg,#0b1322_0%,#173f6d_58%,#111827_100%)] text-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_.9fr] lg:px-8">
-          <div className="flex flex-col justify-center">
+          <div data-reveal="fade-right" className="flex flex-col justify-center">
             <p className="text-sm font-black uppercase text-amber-200">
               Product confidence
             </p>
@@ -226,7 +228,7 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div data-reveal="fade-left" data-reveal-delay="1" className="grid gap-3 sm:grid-cols-2">
             {[
               {
                 icon: BadgeCheck,

@@ -47,7 +47,10 @@ export function ProductCard({
       : [{ url: product.imageUrl, alt: product.imageAlt }];
 
   return (
-    <article className={`surface flex h-full flex-col overflow-hidden ${className}`}>
+    <article
+      className={`product-card-interactive surface flex h-full flex-col overflow-hidden ${className}`}
+      data-reveal="fade-up"
+    >
       <ProductCardGallery
         href={`/products/${product.slug}`}
         images={gallery}

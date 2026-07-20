@@ -12,7 +12,7 @@ const config: Config = {
       colors: {
         ink: "#111827",
         asphalt: "#243247",
-        shopred: "#c6952c",
+        shopred: "#f2bd32",
         electric: "#173f6d",
         bay: "#5d6670",
         paper: "#f5f7fa"

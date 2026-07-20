@@ -8,6 +8,7 @@ import {
   createServerSupabaseClient,
   createServiceSupabaseClient
 } from "@/lib/supabase";
+import { isMissingFitmentEnabledColumn } from "@/lib/supabase-errors";
 
 const defaultProductImageUrl = "/product-oil-filter.svg";
 
@@ -263,7 +264,7 @@ export async function upsertProductAction(formData: FormData) {
       .update(payload)
       .eq("id", productId);
 
-    if (error?.code === "42703") {
+    if (isMissingFitmentEnabledColumn(error)) {
       const { fitment_enabled: _fitmentEnabled, ...legacyPayload } = payload;
       void _fitmentEnabled;
       const fallbackResult = await serviceSupabase
@@ -306,7 +307,7 @@ export async function upsertProductAction(formData: FormData) {
     .select("id")
     .single();
 
-  if (error?.code === "42703") {
+  if (isMissingFitmentEnabledColumn(error)) {
     const { fitment_enabled: _fitmentEnabled, ...legacyPayload } = payload;
     void _fitmentEnabled;
     const fallbackResult = await serviceSupabase

@@ -39,7 +39,7 @@ export function ProductCardGallery({
   }
 
   return (
-    <div className="relative bg-white">
+    <div className="product-image-viewer relative bg-white">
       <div
         ref={sliderRef}
         className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -86,7 +86,7 @@ export function ProductCardGallery({
             <button
               type="button"
               aria-label="Previous product photo"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white/92 text-ink shadow-sm transition hover:bg-white focus-ring"
+              className="product-image-control inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white/92 text-ink shadow-sm transition hover:bg-white focus-ring"
               onClick={() => goTo(activeIndex - 1)}
             >
               <ArrowLeft aria-hidden className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function ProductCardGallery({
             <button
               type="button"
               aria-label="Next product photo"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white/92 text-ink shadow-sm transition hover:bg-white focus-ring"
+              className="product-image-control inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white/92 text-ink shadow-sm transition hover:bg-white focus-ring"
               onClick={() => goTo(activeIndex + 1)}
             >
               <ArrowRight aria-hidden className="h-4 w-4" />

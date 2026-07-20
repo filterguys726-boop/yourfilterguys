@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase";
+import { isMissingFitmentEnabledColumn } from "@/lib/supabase-errors";
 import { sampleCategories, sampleProducts } from "@/lib/sample-catalog";
 import type {
   CatalogProduct,
@@ -240,7 +241,7 @@ export async function getProducts(options?: {
   let queryResult = await runProductQuery(true);
   let hasFitmentFlag = true;
 
-  if (queryResult.error?.code === "42703") {
+  if (isMissingFitmentEnabledColumn(queryResult.error)) {
     queryResult = await runProductQuery(false);
     hasFitmentFlag = false;
   }
