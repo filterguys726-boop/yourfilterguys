@@ -1,7 +1,9 @@
-import Link from "next/link";
 import { AdminGate } from "@/components/admin-gate";
+import {
+  AdminInventoryTable,
+  type AdminInventoryRow
+} from "@/components/admin-inventory-table";
 import { AdminNav } from "@/components/admin-nav";
-import { adjustInventoryAction } from "@/app/admin/products/actions";
 import { getAdminProducts } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
@@ -13,8 +15,17 @@ export default async function AdminInventoryPage() {
     return <AdminGate state={state} />;
   }
 
-  const rows = products.flatMap((product) =>
-    product.variants.map((variant) => ({ product, variant }))
+  const rows: AdminInventoryRow[] = products.flatMap((product) =>
+    product.variants.map((variant) => ({
+      productId: product.id,
+      productName: product.name,
+      productSku: product.sku,
+      variantId: variant.id,
+      variantName: variant.name,
+      variantSku: variant.sku,
+      stockQuantity: variant.stockQuantity,
+      backorderAllowed: variant.backorderAllowed
+    }))
   );
 
   return (
@@ -30,76 +41,7 @@ export default async function AdminInventoryPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="surface overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                <tr>
-                  <th className="px-5 py-3 font-bold">Product</th>
-                  <th className="px-5 py-3 font-bold">Variant</th>
-                  <th className="px-5 py-3 font-bold">Stock</th>
-                  <th className="px-5 py-3 font-bold">Backorder</th>
-                  <th className="px-5 py-3 font-bold">Adjustment</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
-                {rows.map(({ product, variant }) => (
-                  <tr key={variant.id}>
-                    <td className="px-5 py-4">
-                      <Link
-                        href={`/admin/products/${product.id}`}
-                        className="font-black text-electric"
-                      >
-                        {product.name}
-                      </Link>
-                      <p className="mt-1 text-xs text-slate-500">{product.sku}</p>
-                    </td>
-                    <td className="px-5 py-4">
-                      <p className="font-bold text-ink">{variant.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">{variant.sku}</p>
-                    </td>
-                    <td className="px-5 py-4 font-black text-ink">
-                      {variant.stockQuantity}
-                    </td>
-                    <td className="px-5 py-4">
-                      {variant.backorderAllowed ? "Allowed" : "Disabled"}
-                    </td>
-                    <td className="px-5 py-4">
-                      <form
-                        action={adjustInventoryAction}
-                        className="flex flex-wrap items-end gap-2"
-                      >
-                        <input type="hidden" name="product_id" value="" />
-                        <input type="hidden" name="variant_id" value={variant.id} />
-                        <label className="grid gap-1">
-                          <span className="text-[11px] font-black uppercase text-slate-500">
-                            Qty change
-                          </span>
-                          <input
-                            className="field h-10 w-28"
-                            name="quantity_delta"
-                            placeholder="+5 or -2"
-                            inputMode="numeric"
-                          />
-                        </label>
-                        <button className="button-secondary px-3" type="submit">
-                          Adjust stock
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
-                {!rows.length ? (
-                  <tr>
-                    <td className="px-5 py-8 text-center text-slate-600" colSpan={5}>
-                      No variants yet.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminInventoryTable rows={rows} />
       </section>
     </div>
   );
