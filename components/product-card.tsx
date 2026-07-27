@@ -1,5 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, Gauge, PackageCheck } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Gauge,
+  PackageCheck,
+  ShoppingCart
+} from "lucide-react";
+import { useState } from "react";
+import { useCart } from "@/components/cart-provider";
 import { ProductCardGallery } from "@/components/product-card-gallery";
 import { formatMoney } from "@/lib/format";
 import type { CatalogProduct } from "@/lib/types";
@@ -35,12 +45,23 @@ function getInventoryLabel(product: CatalogProduct) {
 
 export function ProductCard({
   product,
-  className = ""
+  className = "",
+  quickAdd = false
 }: {
   product: CatalogProduct;
   className?: string;
+  quickAdd?: boolean;
 }) {
+  const { addItem } = useCart();
+  const [added, setAdded] = useState(false);
   const lowestPrice = getLowestPrice(product);
+  const quickAddVariant = product.variants
+    .filter(
+      (variant) =>
+        variant.active &&
+        (variant.stockQuantity > 0 || variant.backorderAllowed)
+    )
+    .sort((variantA, variantB) => variantA.priceCents - variantB.priceCents)[0];
   const gallery =
     product.imageGallery?.length
       ? product.imageGallery
@@ -97,6 +118,47 @@ export function ProductCard({
               <ArrowRight aria-hidden className="h-4 w-4" />
             </Link>
           </div>
+          {quickAdd ? (
+            <button
+              type="button"
+              className="button-primary w-full"
+              disabled={!quickAddVariant}
+              onClick={() => {
+                if (!quickAddVariant) {
+                  return;
+                }
+
+                addItem({
+                  productId: product.id,
+                  variantId: quickAddVariant.id,
+                  productName: product.name,
+                  variantName: quickAddVariant.name,
+                  sku: quickAddVariant.sku,
+                  priceCents: quickAddVariant.priceCents,
+                  imageUrl: product.imageUrl,
+                  quantity: 1,
+                  stockQuantity: quickAddVariant.stockQuantity,
+                  backorderAllowed: quickAddVariant.backorderAllowed
+                });
+                setAdded(true);
+                window.setTimeout(() => setAdded(false), 1800);
+              }}
+            >
+              {added ? (
+                <>
+                  <CheckCircle2 aria-hidden className="h-4 w-4" />
+                  Added to cart
+                </>
+              ) : quickAddVariant ? (
+                <>
+                  <ShoppingCart aria-hidden className="h-4 w-4" />
+                  Add to cart
+                </>
+              ) : (
+                "Sold out"
+              )}
+            </button>
+          ) : null}
         </div>
       </div>
     </article>
