@@ -40,7 +40,7 @@ export function FeaturedPartsSlider({
             data-featured-card
             className="min-w-[84%] snap-center sm:min-w-[430px] lg:min-w-[460px]"
           >
-            <ProductCard product={product} className="shadow-panel" />
+            <ProductCard product={product} className="shadow-panel" quickAdd />
           </div>
         ))}
       </div>
