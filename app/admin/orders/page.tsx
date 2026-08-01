@@ -29,6 +29,7 @@ function formatAddress(address: Record<string, unknown> | null | undefined) {
   }
 
   return [
+    address.name,
     address.line1,
     address.line2,
     [address.city, address.state, address.postal_code].filter(Boolean).join(", "),

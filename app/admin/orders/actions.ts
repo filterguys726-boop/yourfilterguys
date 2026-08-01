@@ -319,8 +319,15 @@ export async function recoverStripeOrderAction(formData: FormData) {
       revalidatePath("/admin/orders");
       nextPath = ordersPath();
     } else {
-      const shippingAddress =
+      const stripeShippingAddress =
         session.customer_details?.address ?? session.shipping_details?.address ?? null;
+      const customerName =
+        session.shipping_details?.name ?? session.customer_details?.name ?? null;
+      const shippingAddress = stripeShippingAddress
+        ? { ...stripeShippingAddress, name: customerName }
+        : customerName
+          ? { name: customerName }
+          : null;
       const subtotalCents = session.amount_subtotal ?? 0;
       const totalCents = session.amount_total ?? 0;
       const shippingCents = session.total_details?.amount_shipping ?? 0;
