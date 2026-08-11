@@ -3,9 +3,62 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/components/cart-provider";
 import { formatMoney } from "@/lib/format";
+
+type CartQuantityInputProps = {
+  productName: string;
+  quantity: number;
+  onQuantityChange: (quantity: number) => void;
+};
+
+function CartQuantityInput({
+  productName,
+  quantity,
+  onQuantityChange
+}: CartQuantityInputProps) {
+  const [draftQuantity, setDraftQuantity] = useState(String(quantity));
+
+  useEffect(() => {
+    setDraftQuantity(String(quantity));
+  }, [quantity]);
+
+  function commitQuantity(value: string) {
+    const nextQuantity = Number.parseInt(value, 10);
+
+    if (Number.isInteger(nextQuantity) && nextQuantity >= 1) {
+      onQuantityChange(nextQuantity);
+    }
+  }
+
+  return (
+    <label>
+      <span className="sr-only">Quantity for {productName}</span>
+      <input
+        className="field w-20 text-center"
+        value={draftQuantity}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        onChange={(event) => {
+          const nextValue = event.target.value;
+
+          if (!/^\d*$/.test(nextValue)) {
+            return;
+          }
+
+          setDraftQuantity(nextValue);
+          commitQuantity(nextValue);
+        }}
+        onBlur={() => {
+          if (draftQuantity === "" || Number.parseInt(draftQuantity, 10) < 1) {
+            setDraftQuantity(String(quantity));
+          }
+        }}
+      />
+    </label>
+  );
+}
 
 export function CartClient() {
   const { items, subtotalCents, updateQuantity, removeItem } = useCart();
@@ -99,20 +152,13 @@ export function CartClient() {
                     ) : null}
                   </div>
                   <div className="flex items-center gap-3 sm:justify-end">
-                    <label>
-                      <span className="sr-only">Quantity</span>
-                      <input
-                        className="field w-20 text-center"
-                        value={item.quantity}
-                        inputMode="numeric"
-                        onChange={(event) =>
-                          updateQuantity(
-                            item.variantId,
-                            Number(event.target.value) || 1
-                          )
-                        }
-                      />
-                    </label>
+                    <CartQuantityInput
+                      productName={item.productName}
+                      quantity={item.quantity}
+                      onQuantityChange={(quantity) =>
+                        updateQuantity(item.variantId, quantity)
+                      }
+                    />
                     <button
                       type="button"
                       className="button-secondary px-3"
