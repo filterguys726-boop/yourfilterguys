@@ -4,6 +4,10 @@ import {
   type OrderEmailData,
   type OrderEmailItem
 } from "@/lib/order-emails";
+import {
+  claimOrderNotification,
+  releaseOrderNotificationClaim
+} from "@/lib/order-notification-claims";
 
 type OrderNotificationRow = {
   id: string;
@@ -62,7 +66,8 @@ function mapOrderEmailData(
 
 export async function sendOrderCreatedNotifications(
   supabase: SupabaseClient,
-  orderId: string
+  orderId: string,
+  options: { force?: boolean } = {}
 ) {
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -87,16 +92,83 @@ export async function sendOrderCreatedNotifications(
     console.error("Order email line items could not be loaded", itemsError);
   }
 
+  const [customerClaim, adminClaim] = options.force
+    ? [
+        { claimed: true, claimedAt: new Date().toISOString() },
+        { claimed: true, claimedAt: new Date().toISOString() }
+      ]
+    : await Promise.all([
+        claimOrderNotification(
+          supabase,
+          orderId,
+          "customer_confirmation_sent_at"
+        ),
+        claimOrderNotification(supabase, orderId, "admin_notification_sent_at")
+      ]);
+
+  if (!customerClaim.claimed && !adminClaim.claimed) {
+    return;
+  }
+
   const result = await sendOrderConfirmationEmails(
-    mapOrderEmailData(typedOrder, (items ?? []) as OrderNotificationItemRow[])
+    mapOrderEmailData(typedOrder, (items ?? []) as OrderNotificationItemRow[]),
+    {
+      sendCustomer: customerClaim.claimed,
+      sendAdmin: adminClaim.claimed
+    }
   );
 
-  if (!result.customerSent || !result.adminSent) {
+  if (options.force) {
+    const timestampUpdates: Record<string, string> = {};
+
+    if (result.customerSent) {
+      timestampUpdates.customer_confirmation_sent_at = customerClaim.claimedAt;
+    }
+
+    if (result.adminSent) {
+      timestampUpdates.admin_notification_sent_at = adminClaim.claimedAt;
+    }
+
+    if (Object.keys(timestampUpdates).length) {
+      const { error } = await supabase
+        .from("orders")
+        .update(timestampUpdates)
+        .eq("id", orderId);
+
+      if (error) {
+        console.error("Order email timestamp update failed", error);
+      }
+    }
+  } else {
+    await Promise.all([
+      customerClaim.claimed && !result.customerSent
+        ? releaseOrderNotificationClaim(
+            supabase,
+            orderId,
+            "customer_confirmation_sent_at",
+            customerClaim.claimedAt
+          )
+        : Promise.resolve(),
+      adminClaim.claimed && !result.adminSent
+        ? releaseOrderNotificationClaim(
+            supabase,
+            orderId,
+            "admin_notification_sent_at",
+            adminClaim.claimedAt
+          )
+        : Promise.resolve()
+    ]);
+  }
+
+  if (
+    (customerClaim.claimed && !result.customerSent) ||
+    (adminClaim.claimed && !result.adminSent)
+  ) {
     const failures = [
-      !result.customerSent
+      customerClaim.claimed && !result.customerSent
         ? `customer email failed: ${result.customerError ?? "unknown error"}`
         : "",
-      !result.adminSent
+      adminClaim.claimed && !result.adminSent
         ? `admin email failed: ${result.adminError ?? "unknown error"}`
         : ""
     ]
@@ -107,17 +179,4 @@ export async function sendOrderCreatedNotifications(
       `Order email delivery failed: ${failures}. Check RESEND_API_KEY, ORDER_FROM_EMAIL, ADMIN_ORDER_EMAIL, and Resend logs.`
     );
   }
-
-  await supabase
-    .from("orders")
-    .update({
-      customer_confirmation_sent_at: new Date().toISOString(),
-      admin_notification_sent_at: new Date().toISOString()
-    })
-    .eq("id", orderId)
-    .then(({ error }) => {
-      if (error) {
-        console.error("Order email timestamp update failed", error);
-      }
-    });
 }
