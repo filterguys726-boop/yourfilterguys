@@ -1,5 +1,9 @@
 import type { Address, Order, Payment } from "square";
 import { sendOrderCreatedNotifications } from "@/lib/order-notifications";
+import {
+  mergeStoredShippingAddress,
+  normalizeSquareShippingAddress
+} from "@/lib/square-address";
 import { getSquare } from "@/lib/square";
 import { createServiceSupabaseClient } from "@/lib/supabase";
 
@@ -15,28 +19,6 @@ export type CompletedSquarePayment = {
 
 function cents(value: bigint | null | undefined) {
   return Number(value ?? BigInt(0));
-}
-
-function normalizeAddress(
-  address: Address | undefined,
-  displayName?: string | null
-) {
-  if (!address && !displayName) {
-    return null;
-  }
-
-  return {
-    name:
-      displayName ||
-      [address?.firstName, address?.lastName].filter(Boolean).join(" ") ||
-      null,
-    line1: address?.addressLine1 ?? null,
-    line2: address?.addressLine2 ?? null,
-    city: address?.locality ?? null,
-    state: address?.administrativeDistrictLevel1 ?? null,
-    postal_code: address?.postalCode ?? null,
-    country: address?.country ?? null
-  };
 }
 
 function getShipmentRecipient(order: Order) {
@@ -81,17 +63,43 @@ export function squarePaymentFromSdk(payment: Payment): CompletedSquarePayment {
 }
 
 export async function processCompletedSquarePayment(
-  payment: CompletedSquarePayment
+  webhookPayment: CompletedSquarePayment
 ) {
-  if (payment.status !== "COMPLETED") {
+  if (webhookPayment.status !== "COMPLETED") {
     throw new Error("Square payment is not completed.");
   }
 
-  if (!payment.id || !payment.orderId) {
+  if (!webhookPayment.id) {
     throw new Error("Square payment is missing its payment or order ID.");
   }
 
   const square = getSquare();
+  const paymentResponse = await square.payments.get({
+    paymentId: webhookPayment.id
+  });
+
+  if (!paymentResponse.payment) {
+    throw new Error(`Square payment ${webhookPayment.id} could not be loaded.`);
+  }
+
+  const hydratedPayment = squarePaymentFromSdk(paymentResponse.payment);
+  const payment: CompletedSquarePayment = {
+    ...webhookPayment,
+    ...hydratedPayment,
+    id: hydratedPayment.id || webhookPayment.id,
+    orderId: hydratedPayment.orderId || webhookPayment.orderId,
+    buyerEmailAddress:
+      hydratedPayment.buyerEmailAddress ?? webhookPayment.buyerEmailAddress,
+    totalCents: hydratedPayment.totalCents ?? webhookPayment.totalCents,
+    currency: hydratedPayment.currency ?? webhookPayment.currency,
+    shippingAddress:
+      hydratedPayment.shippingAddress ?? webhookPayment.shippingAddress
+  };
+
+  if (payment.status !== "COMPLETED" || !payment.orderId) {
+    throw new Error("Square payment is not completed or is missing its order ID.");
+  }
+
   const orderResponse = await square.orders.batchGet({
     orderIds: [payment.orderId]
   });
@@ -113,12 +121,23 @@ export async function processCompletedSquarePayment(
     payment.totalCents ?? cents(order.totalMoney?.amount);
   const customerEmail =
     payment.buyerEmailAddress ?? recipient?.emailAddress ?? "";
-  const shippingAddress = normalizeAddress(
-    payment.shippingAddress ?? recipient?.address,
+  const shippingAddress = normalizeSquareShippingAddress(
+    [payment.shippingAddress, webhookPayment.shippingAddress, recipient?.address],
     recipient?.displayName
   );
   const customerId = order.metadata?.customer_id || null;
   const supabase = createServiceSupabaseClient();
+  const { data: existingOrder, error: existingOrderError } = await supabase
+    .from("orders")
+    .select("id,shipping_address")
+    .eq("payment_provider", "square")
+    .eq("provider_payment_id", payment.id)
+    .maybeSingle();
+
+  if (existingOrderError) {
+    throw existingOrderError;
+  }
+
   const { data: orderId, error } = await supabase.rpc("process_paid_payment", {
     provider_input: "square",
     provider_checkout_id_input: null,
@@ -139,10 +158,36 @@ export async function processCompletedSquarePayment(
     throw error;
   }
 
-  try {
-    await sendOrderCreatedNotifications(supabase, orderId as string);
-  } catch (notificationError) {
-    console.error("Square order notification email failed", notificationError);
+  let addressUpdated = false;
+
+  if (existingOrder) {
+    const mergedAddress = mergeStoredShippingAddress(
+      shippingAddress,
+      existingOrder.shipping_address as Record<string, unknown> | null
+    );
+
+    if (
+      JSON.stringify(mergedAddress) !== JSON.stringify(existingOrder.shipping_address)
+    ) {
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({ shipping_address: mergedAddress })
+        .eq("id", existingOrder.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      addressUpdated = true;
+    }
+  }
+
+  if (!existingOrder || addressUpdated) {
+    try {
+      await sendOrderCreatedNotifications(supabase, orderId as string);
+    } catch (notificationError) {
+      console.error("Square order notification email failed", notificationError);
+    }
   }
 
   return orderId as string;
