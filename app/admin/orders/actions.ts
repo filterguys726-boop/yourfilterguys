@@ -9,6 +9,11 @@ import { sendOrderCreatedNotifications } from "@/lib/order-notifications";
 import { createServerSupabaseClient, createServiceSupabaseClient } from "@/lib/supabase";
 import { sendOrderStatusEmail } from "@/lib/order-emails";
 import { getStripe } from "@/lib/stripe";
+import { getSquare } from "@/lib/square";
+import {
+  processCompletedSquarePayment,
+  squarePaymentFromSdk
+} from "@/lib/square-orders";
 
 async function assertAdmin() {
   const supabase = await createServerSupabaseClient();
@@ -70,7 +75,7 @@ function ordersPath(error?: unknown) {
 
   const message = readableError(
     error,
-    "The Stripe order could not be recovered."
+    "The paid order could not be recovered."
   );
 
   return `/admin/orders?error=${encodeURIComponent(message)}`;
@@ -338,6 +343,12 @@ export async function recoverStripeOrderAction(formData: FormData) {
       const { data: order, error: orderError } = await adminSupabase
         .from("orders")
         .insert({
+          payment_provider: "stripe",
+          provider_checkout_id: session.id,
+          provider_payment_id:
+            typeof session.payment_intent === "string"
+              ? session.payment_intent
+              : null,
           stripe_checkout_session_id: session.id,
           stripe_customer_id:
             typeof session.customer === "string" ? session.customer : null,
@@ -429,6 +440,33 @@ export async function recoverStripeOrderAction(formData: FormData) {
       revalidatePath("/admin/orders");
       nextPath = ordersPath();
     }
+  } catch (error) {
+    nextPath = ordersPath(error);
+  }
+
+  redirect(nextPath);
+}
+
+export async function recoverSquareOrderAction(formData: FormData) {
+  await assertAdmin();
+  const paymentId = textValue(formData, "payment_id");
+
+  if (!paymentId) {
+    redirect(ordersPath(new Error("Enter a Square Payment ID.")));
+  }
+
+  let nextPath = ordersPath();
+
+  try {
+    const square = getSquare();
+    const response = await square.payments.get({ paymentId });
+
+    if (!response.payment) {
+      throw new Error("Square did not return that payment.");
+    }
+
+    await processCompletedSquarePayment(squarePaymentFromSdk(response.payment));
+    revalidatePath("/admin/orders");
   } catch (error) {
     nextPath = ordersPath(error);
   }

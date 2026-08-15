@@ -193,7 +193,7 @@ export function CartClient() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600">Tax</span>
-              <span className="font-semibold text-slate-500">Calculated by Stripe</span>
+              <span className="font-semibold text-slate-500">Calculated at checkout</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600">Shipping</span>
@@ -225,8 +225,8 @@ export function CartClient() {
             Checkout
           </button>
           <p className="mt-3 text-xs leading-5 text-slate-500">
-            Payment, tax, shipping address, and shipping rate selection are
-            handled by Stripe Checkout.
+            Payment, tax, shipping address, and available shipping options are
+            handled during secure checkout.
           </p>
         </aside>
       </section>

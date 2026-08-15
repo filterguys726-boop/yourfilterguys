@@ -70,7 +70,7 @@ export default async function AccountOrderPage({ params }: OrderPageProps) {
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   This order exists and payment was captured, but line-item rows
                   were not available when it was created. For fulfillment, use
-                  the Stripe receipt or admin order dashboard details.
+                  the payment receipt or admin order dashboard details.
                 </p>
               </div>
             )}

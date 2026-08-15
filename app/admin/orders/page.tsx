@@ -1,6 +1,7 @@
 import { AdminGate } from "@/components/admin-gate";
 import { AdminNav } from "@/components/admin-nav";
 import {
+  recoverSquareOrderAction,
   recoverStripeOrderAction,
   sendOrderEmailAction,
   updateOrderFulfillmentAction
@@ -169,14 +170,26 @@ function OrderCard({ order }: { order: OrderSummary }) {
 
           <div>
             <p className="text-xs font-black uppercase text-slate-500">
-              Stripe reference
+              Payment reference
             </p>
             <div className="mt-2 grid gap-1 text-xs text-slate-600">
               <p className="break-all">
-                Session: {order.stripeCheckoutSessionId ?? "Not captured"}
+                Provider: {order.paymentProvider ?? "stripe"}
               </p>
+              {order.providerOrderId ? (
+                <p className="break-all">Order: {order.providerOrderId}</p>
+              ) : null}
+              {order.providerCheckoutId ? (
+                <p className="break-all">
+                  Checkout: {order.providerCheckoutId}
+                </p>
+              ) : order.stripeCheckoutSessionId ? (
+                <p className="break-all">
+                  Checkout: {order.stripeCheckoutSessionId}
+                </p>
+              ) : null}
               <p className="break-all">
-                Payment: {order.paymentIntentId ?? "Not captured"}
+                Payment: {order.providerPaymentId ?? order.paymentIntentId ?? "Not captured"}
               </p>
             </div>
           </div>
@@ -286,7 +299,7 @@ export default async function AdminOrdersPage({
         ) : null}
         {query?.recovered ? (
           <div className="mb-6 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-bay">
-            Stripe order recovered. Check the order list below.
+            Paid order recovered. Check the order list below.
           </div>
         ) : null}
         {query?.updated ? (
@@ -304,26 +317,48 @@ export default async function AdminOrdersPage({
             Order notification email attempted. Check Resend activity and inboxes.
           </div>
         ) : null}
-        <form action={recoverStripeOrderAction} className="surface mb-6 p-5">
-          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-            <label className="grid gap-2">
-              <span className="label">Recover paid Stripe session</span>
-              <input
-                className="field"
-                name="session_id"
-                placeholder="cs_live_..."
-                required
-              />
-            </label>
-            <button type="submit" className="button-primary">
-              Recover order
-            </button>
-          </div>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            Use this if Stripe charged a customer but webhook delivery did not
-            create the order automatically.
-          </p>
-        </form>
+        <div className="mb-6 grid gap-5 lg:grid-cols-2">
+          <form action={recoverSquareOrderAction} className="surface p-5">
+            <div className="grid gap-4">
+              <label className="grid gap-2">
+                <span className="label">Recover paid Square payment</span>
+                <input
+                  className="field"
+                  name="payment_id"
+                  placeholder="Square Payment ID"
+                  required
+                />
+              </label>
+              <button type="submit" className="button-primary w-fit">
+                Recover Square order
+              </button>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Use this if Square completed payment but webhook delivery did not
+              create the order automatically.
+            </p>
+          </form>
+          <form action={recoverStripeOrderAction} className="surface p-5">
+            <div className="grid gap-4">
+              <label className="grid gap-2">
+                <span className="label">Recover paid Stripe session</span>
+                <input
+                  className="field"
+                  name="session_id"
+                  placeholder="cs_live_..."
+                  required
+                />
+              </label>
+              <button type="submit" className="button-secondary w-fit">
+                Recover Stripe order
+              </button>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Retained for historical Stripe payments and a future Stripe
+              reactivation.
+            </p>
+          </form>
+        </div>
         <div className="surface mb-6 p-5">
           <div className="grid gap-4 md:grid-cols-3">
             <div>

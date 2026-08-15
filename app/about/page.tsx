@@ -51,7 +51,7 @@ export default function AboutPage() {
         <p>
           {brand.name} is a modern U.S. ecommerce store for automotive filters
           and parts. The MVP is intentionally focused: catalog browsing, clear
-          product variants, inventory, cart, secure Stripe Checkout,
+          product variants, inventory, cart, secure hosted checkout,
           inventory updates, and customer order history.
         </p>
       </PolicySection>

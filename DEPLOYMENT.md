@@ -26,6 +26,17 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 
+PAYMENT_PROVIDER=square
+SQUARE_ENVIRONMENT=sandbox
+SQUARE_ACCESS_TOKEN=
+SQUARE_LOCATION_ID=
+SQUARE_WEBHOOK_SIGNATURE_KEY=
+SQUARE_WEBHOOK_NOTIFICATION_URL=https://yourfilterguys.com/api/webhooks/square
+SQUARE_SHIPPING_FEE_CENTS=0
+SQUARE_SHIPPING_FEE_NAME="Standard shipping"
+SQUARE_TAX_PERCENTAGE=
+
+# Keep these values if Stripe might be re-enabled later.
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PUBLISHABLE_KEY=
@@ -33,7 +44,7 @@ STRIPE_SHIPPING_RATE_STANDARD=
 STRIPE_SHIPPING_RATE_EXPRESS=
 ```
 
-For the first preview deployment, Supabase and Stripe can be blank. The site
+For the first preview deployment, Supabase and payment credentials can be blank. The site
 will render using the local sample catalog, but checkout, accounts, admin, and
 order history need the live credentials before real testing.
 
@@ -41,7 +52,7 @@ order history need the live credentials before real testing.
 
 1. Create a Supabase project.
 2. Open the SQL editor.
-3. Run `supabase/schema.sql`.
+3. Run `supabase/schema.sql`, then apply every file in `supabase/migrations` in timestamp order.
 4. Run `supabase/seed.sql` if you want the database to include sample products.
 5. In Supabase Auth, create or invite the first admin user.
 6. Add that user's UUID to `public.admin_users`.
@@ -50,7 +61,28 @@ order history need the live credentials before real testing.
 The service role key must stay server-side only. Do not expose it in browser
 code or public docs.
 
-## 4. Stripe Setup
+## 4. Square Setup
+
+1. Create a Square Developer application owned by the client business.
+2. Start with Sandbox credentials and `SQUARE_ENVIRONMENT=sandbox`.
+3. Copy the Sandbox access token and location ID into Vercel Preview variables.
+4. Create a webhook subscription with this exact notification URL:
+
+```text
+https://yourfilterguys.com/api/webhooks/square
+```
+
+5. Subscribe to `payment.created` and `payment.updated`.
+6. Copy the webhook signature key to `SQUARE_WEBHOOK_SIGNATURE_KEY`.
+7. Set `SQUARE_WEBHOOK_NOTIFICATION_URL` to the exact registered URL; Square uses
+   it during signature validation.
+8. Configure the fixed shipping fee if needed. Leave
+   `SQUARE_TAX_PERCENTAGE` blank until the business confirms its tax rule.
+
+Do not switch `SQUARE_ENVIRONMENT` to production until the Square seller account
+is activated, its U.S. bank is linked, and a Sandbox payment/refund test passes.
+
+## 5. Optional Stripe Setup
 
 1. Create or use a Stripe account.
 2. Enable Stripe Tax.
@@ -71,7 +103,11 @@ checkout.session.completed
 
 Copy the webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
 
-## 5. Domain
+Set `PAYMENT_PROVIDER=stripe` to restore Stripe checkout later. Stripe secrets and
+the historical webhook can remain configured while Square is active; checkout
+creation only uses the selected provider.
+
+## 6. Domain
 
 1. Add `yourfilterguys.com` to the Vercel project.
 2. Follow Vercel's DNS instructions at the domain registrar.
@@ -81,7 +117,7 @@ Copy the webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
 NEXT_PUBLIC_SITE_URL=https://yourfilterguys.com
 ```
 
-## 6. Pre-Launch QA
+## 7. Pre-Launch QA
 
 Run through this before sharing with the client:
 
@@ -91,13 +127,14 @@ Run through this before sharing with the client:
 - Cart add/remove/update works.
 - Signup, login, logout, and password reset work.
 - Admin user can access admin pages.
-- Stripe Checkout opens with tax and shipping rates.
-- Stripe webhook creates orders and reduces inventory.
+- The selected hosted checkout opens with the expected tax and shipping totals.
+- The selected provider webhook creates one order and reduces inventory once.
+- Replaying the same webhook does not duplicate the order or inventory movement.
 - Customer order history shows paid orders.
 - Footer launch pages are reachable.
 - Client confirms product copy, pricing, and SKUs.
 
-## 7. Current MVP Notes
+## 8. Current MVP Notes
 
 - Real product photos are included for two Detroit Diesel sample products.
 - Vehicle fitment is disabled by default and can be enabled per product after

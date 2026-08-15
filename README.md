@@ -6,7 +6,7 @@ Modern Next.js ecommerce MVP for [yourfilterguys.com](https://yourfilterguys.com
 
 - Next.js App Router, React, Tailwind CSS
 - Supabase Postgres, Auth, Storage, RLS
-- Stripe Checkout, Tax, Shipping Rates, Webhooks
+- Provider-switchable Square and Stripe hosted checkout
 - Vercel hosting
 
 ## Quick Start
@@ -18,12 +18,12 @@ npm run dev
 ```
 
 The storefront includes a local fallback catalog so it can run before Supabase
-and Stripe credentials are configured.
+and payment-provider credentials are configured.
 
 ## Deployment
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for the Vercel launch checklist, required
-environment variables, Supabase setup, Stripe webhook setup, and pre-launch QA.
+environment variables, Supabase setup, payment webhooks, and pre-launch QA.
 
 ## Supabase
 
@@ -33,7 +33,24 @@ environment variables, Supabase setup, Stripe webhook setup, and pre-launch QA.
 4. Create one auth user, then add that user's UUID to `admin_users`.
 5. Add Supabase URL, anon key, and service role key to `.env.local`.
 
-## Stripe
+## Payment provider
+
+Set `PAYMENT_PROVIDER` to `square`, `stripe`, or `disabled`. Square is the
+default. Stripe code and historical references remain available so it can be
+re-enabled without rewriting checkout.
+
+### Square
+
+1. Create a Square Developer application and Sandbox seller.
+2. Add `SQUARE_ACCESS_TOKEN`, `SQUARE_LOCATION_ID`, and the Sandbox environment.
+3. Apply all Supabase migrations.
+4. Register `/api/webhooks/square` for `payment.created` and `payment.updated`.
+5. Add the exact notification URL and signature key to the environment.
+
+The Square webhook validates the signature, creates the paid order, atomically
+reduces inventory, records inventory movements, and sends order notifications.
+
+### Stripe
 
 1. Create Stripe shipping rates for standard and express shipping.
 2. Add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and shipping rate IDs.

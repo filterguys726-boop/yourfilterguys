@@ -10,6 +10,10 @@ import type { CatalogProduct, OrderSummary } from "@/lib/types";
 type AdminOrderRow = {
   id: string;
   order_number: string;
+  payment_provider: "stripe" | "square";
+  provider_checkout_id: string | null;
+  provider_order_id: string | null;
+  provider_payment_id: string | null;
   stripe_checkout_session_id: string | null;
   payment_intent_id: string | null;
   status: string;
@@ -120,7 +124,7 @@ export async function getAdminOrders(): Promise<{
     .from("orders")
     .select(
       `
-      id,order_number,stripe_checkout_session_id,payment_intent_id,status,payment_status,fulfillment_status,
+      id,order_number,payment_provider,provider_checkout_id,provider_order_id,provider_payment_id,stripe_checkout_session_id,payment_intent_id,status,payment_status,fulfillment_status,
       tracking_carrier,tracking_number,tracking_url,customer_email,subtotal_cents,tax_cents,shipping_cents,total_cents,
       currency,shipping_address,created_at
     `
@@ -160,6 +164,10 @@ export async function getAdminOrders(): Promise<{
     orders: orderRows.map((order) => ({
       id: order.id,
       orderNumber: order.order_number,
+      paymentProvider: order.payment_provider,
+      providerCheckoutId: order.provider_checkout_id,
+      providerOrderId: order.provider_order_id,
+      providerPaymentId: order.provider_payment_id,
       stripeCheckoutSessionId: order.stripe_checkout_session_id,
       paymentIntentId: order.payment_intent_id,
       status: order.status,

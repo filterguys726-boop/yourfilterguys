@@ -140,7 +140,7 @@ export function AddToCartPanel({ product }: { product: CatalogProduct }) {
             </span>
           </div>
           <p className="mt-2 text-xs font-semibold text-slate-500">
-            Tax and shipping are calculated in Stripe Checkout.
+            Tax and shipping are calculated during secure checkout.
           </p>
         </div>
 
