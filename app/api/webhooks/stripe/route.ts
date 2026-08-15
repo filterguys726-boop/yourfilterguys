@@ -79,181 +79,35 @@ async function notifyPaidOrder(supabase: SupabaseClient, orderId: string) {
   }
 }
 
-async function processCheckoutDirectly(
+async function processCheckoutAtomically(
   supabase: SupabaseClient,
   input: DirectCheckoutOrderInput
-): Promise<string> {
-  const { data: existingOrder, error: existingOrderError } = await supabase
-    .from("orders")
-    .select("id")
-    .eq("stripe_checkout_session_id", input.session.id)
-    .maybeSingle();
-
-  if (existingOrderError) {
-    throw existingOrderError;
-  }
-
-  if (existingOrder) {
-    await ensureOrderItems(supabase, existingOrder.id as string, input.items);
-    return existingOrder.id as string;
-  }
-
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      stripe_checkout_session_id: input.session.id,
-      stripe_customer_id:
-        typeof input.session.customer === "string" ? input.session.customer : null,
-      payment_intent_id:
-        typeof input.session.payment_intent === "string"
-          ? input.session.payment_intent
-          : null,
-      customer_id: input.session.metadata?.customer_id || null,
-      customer_email: input.customerEmail,
-      status: "confirmed",
-      payment_status: "paid",
-      fulfillment_status: "pending",
-      currency: input.session.currency ?? "usd",
-      subtotal_cents: input.subtotalCents,
-      tax_cents: input.taxCents,
-      shipping_cents: input.shippingCents,
-      total_cents: input.totalCents,
-      shipping_address: input.shippingAddress
-    })
-    .select("id")
-    .single();
-
-  if (orderError) {
-    throw orderError;
-  }
-
-  const orderId = order.id as string;
-  await ensureOrderItems(supabase, orderId, input.items);
-
-  for (const item of input.items) {
-    if (!item.variant_id) {
-      continue;
-    }
-
-    const { data: variant, error: variantError } = await supabase
-      .from("product_variants")
-      .select("stock_quantity")
-      .eq("id", item.variant_id)
-      .single();
-
-    if (variantError) {
-      console.error("Inventory variant lookup failed after paid checkout", {
-        orderId,
-        variantId: item.variant_id,
-        error: variantError
-      });
-      continue;
-    }
-
-    const nextStock = Math.max(
-      0,
-      Number(variant.stock_quantity ?? 0) - item.quantity
-    );
-    const { error: stockError } = await supabase
-      .from("product_variants")
-      .update({ stock_quantity: nextStock })
-      .eq("id", item.variant_id);
-
-    if (stockError) {
-      console.error("Inventory stock update failed after paid checkout", {
-        orderId,
-        variantId: item.variant_id,
-        error: stockError
-      });
-      continue;
-    }
-
-    const { error: movementError } = await supabase
-      .from("inventory_movements")
-      .insert({
-        variant_id: item.variant_id,
-        quantity_delta: -item.quantity,
-        movement_type: "sale",
-        reason: "stripe_checkout",
-        reference_type: "order",
-        reference_id: orderId
-      });
-
-    if (movementError) {
-      console.error("Inventory movement insert failed after paid checkout", {
-        orderId,
-        variantId: item.variant_id,
-        error: movementError
-      });
-    }
-  }
-
-  return orderId;
-}
-
-async function ensureOrderItems(
-  supabase: SupabaseClient,
-  orderId: string,
-  items: WebhookOrderItem[]
 ) {
-  if (!items.length) {
-    throw new Error("Stripe checkout session did not return any line items.");
-  }
-
-  const { data: existingItems, error: existingItemsError } = await supabase
-    .from("order_items")
-    .select("id")
-    .eq("order_id", orderId)
-    .limit(1);
-
-  if (existingItemsError) {
-    throw existingItemsError;
-  }
-
-  if (existingItems?.length) {
-    console.info("Order already has line items", {
-      orderId,
-      count: existingItems.length
-    });
-    return;
-  }
-
-  const rows = items.map((item) => ({
-      order_id: orderId,
-      product_id: item.product_id || null,
-      variant_id: item.variant_id || null,
-      product_name: item.product_name,
-      variant_name: item.variant_name,
-      sku: item.sku,
-      quantity: item.quantity,
-      unit_amount_cents: item.unit_amount_cents,
-      line_total_cents: item.line_total_cents
-    }));
-  const { error: orderItemsError } = await supabase.from("order_items").insert(rows);
-
-  if (orderItemsError) {
-    console.error("Order line item insert failed, retrying without FK references", {
-      orderId,
-      error: orderItemsError
-    });
-
-    const { error: fallbackError } = await supabase.from("order_items").insert(
-      rows.map((row) => ({
-        ...row,
-        product_id: null,
-        variant_id: null
-      }))
-    );
-
-    if (fallbackError) {
-      throw fallbackError;
-    }
-  }
-
-  console.info("Inserted order line items", {
-    orderId,
-    count: items.length
+  const paymentIntentId =
+    typeof input.session.payment_intent === "string"
+      ? input.session.payment_intent
+      : null;
+  const { data: orderId, error } = await supabase.rpc("process_paid_payment", {
+    provider_input: "stripe",
+    provider_checkout_id_input: input.session.id,
+    provider_order_id_input: null,
+    provider_payment_id_input: paymentIntentId,
+    customer_id_input: input.session.metadata?.customer_id || null,
+    customer_email_input: input.customerEmail,
+    currency_input: input.session.currency ?? "usd",
+    subtotal_cents_input: input.subtotalCents,
+    tax_cents_input: input.taxCents,
+    shipping_cents_input: input.shippingCents,
+    total_cents_input: input.totalCents,
+    shipping_address_input: input.shippingAddress,
+    items_input: input.items
   });
+
+  if (error) {
+    throw error;
+  }
+
+  return orderId as string;
 }
 
 export async function POST(request: Request) {
@@ -380,7 +234,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const orderId = await processCheckoutDirectly(supabase, orderInput);
+    const orderId = await processCheckoutAtomically(supabase, orderInput);
     await notifyPaidOrder(supabase, orderId);
   } catch (error) {
     return NextResponse.json(

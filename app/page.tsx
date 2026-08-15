@@ -248,7 +248,7 @@ export default async function HomePage() {
               {
                 icon: ShieldCheck,
                 title: "Secure checkout",
-                text: "Stripe Checkout handles payments, tax, shipping, and receipts."
+                text: "Our secure checkout handles payments, tax, shipping, and receipts."
               }
             ].map((item) => (
               <div

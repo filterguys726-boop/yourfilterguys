@@ -226,7 +226,7 @@ export default async function AdminCustomersPage({
                     customer&apos;s orders. If the customer has orders above but
                     this section is empty, those orders were created before
                     order item rows were available or need to be recovered from
-                    Stripe.
+                    the payment provider.
                   </p>
                 </div>
               ) : null}

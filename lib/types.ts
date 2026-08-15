@@ -79,6 +79,10 @@ export type OrderSummary = {
   status: string;
   paymentStatus: string;
   fulfillmentStatus: string;
+  paymentProvider?: "stripe" | "square";
+  providerCheckoutId?: string | null;
+  providerOrderId?: string | null;
+  providerPaymentId?: string | null;
   stripeCheckoutSessionId?: string | null;
   paymentIntentId?: string | null;
   trackingCarrier?: string | null;

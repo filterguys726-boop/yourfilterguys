@@ -92,7 +92,12 @@ create table if not exists public.orders (
     'TF-' || to_char(now(), 'YYYY') || '-' ||
     lpad(nextval('order_number_sequence')::text, 6, '0')
   ),
-  stripe_checkout_session_id text not null unique,
+  payment_provider text not null default 'stripe'
+    check (payment_provider in ('stripe', 'square')),
+  provider_checkout_id text,
+  provider_order_id text,
+  provider_payment_id text,
+  stripe_checkout_session_id text unique,
   stripe_customer_id text,
   payment_intent_id text,
   customer_id uuid references auth.users(id) on delete set null,
@@ -150,6 +155,15 @@ create index if not exists vehicle_fitment_product_id_idx on public.vehicle_fitm
 create index if not exists vehicle_fitment_lookup_idx on public.vehicle_fitment(year, make, model);
 create index if not exists orders_customer_id_idx on public.orders(customer_id);
 create index if not exists orders_customer_email_idx on public.orders(lower(customer_email));
+create unique index if not exists orders_provider_checkout_id_unique
+  on public.orders(payment_provider, provider_checkout_id)
+  where provider_checkout_id is not null;
+create unique index if not exists orders_provider_order_id_unique
+  on public.orders(payment_provider, provider_order_id)
+  where provider_order_id is not null;
+create unique index if not exists orders_provider_payment_id_unique
+  on public.orders(payment_provider, provider_payment_id)
+  where provider_payment_id is not null;
 create index if not exists order_items_order_id_idx on public.order_items(order_id);
 create index if not exists inventory_movements_variant_id_idx on public.inventory_movements(variant_id);
 

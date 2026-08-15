@@ -65,7 +65,7 @@ export default async function AccountOrdersPage() {
             <div className="p-8 text-center">
               <h2 className="text-2xl font-black text-ink">No orders yet</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Completed Stripe checkouts appear here after the webhook creates
+                Completed checkouts appear here after the payment webhook creates
                 the order.
               </p>
               <Link href="/products" className="button-primary mt-5">

@@ -39,10 +39,11 @@ export default function PrivacyPage() {
 
       <PolicySection title="Payments and Service Providers">
         <p>
-          Payments are processed through Stripe. We do not store full card
-          numbers on our servers. Supabase helps provide authentication,
-          database, storage, and account functionality. These providers process
-          information as needed to operate the store.
+          Payments are processed through our configured payment provider, which
+          may include Square or Stripe. We do not store full card numbers on our
+          servers. Supabase helps provide authentication, database, storage, and
+          account functionality. These providers process information as needed
+          to operate the store.
         </p>
       </PolicySection>
 
