@@ -10,6 +10,7 @@ import {
   adjustInventoryAction,
   createFitmentAction,
   deleteProductAction,
+  syncSquareProductAction,
   upsertVariantAction
 } from "@/app/admin/products/actions";
 import { ProductForm } from "@/app/admin/products/product-form";
@@ -22,6 +23,8 @@ type AdminProductPageProps = {
   }>;
   searchParams?: Promise<{
     error?: string;
+    squareSynced?: string;
+    warning?: string;
   }>;
 };
 
@@ -58,6 +61,30 @@ export default async function AdminProductPage({
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:px-8">
         <AdminErrorAlert message={query?.error} />
+        {query?.squareSynced ? (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-bay">
+            Product details, variants, and primary image synchronized with Square.
+          </div>
+        ) : null}
+        {query?.warning ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+            {query.warning}
+          </div>
+        ) : null}
+        <section className="surface flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-black text-ink">Square Catalog</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Synchronize checkout names, descriptions, prices, variants, and the primary image.
+            </p>
+          </div>
+          <form action={syncSquareProductAction}>
+            <input type="hidden" name="product_id" value={product.id} />
+            <button type="submit" className="button-secondary">
+              Sync this product to Square
+            </button>
+          </form>
+        </section>
         <ProductForm categories={categories} product={product} />
 
         <section className="surface overflow-hidden">
