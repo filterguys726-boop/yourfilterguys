@@ -13,6 +13,8 @@ import {
   checkoutConfigurationError,
   isPaymentProviderConfigured
 } from "@/lib/payments";
+import { getSquareCatalogVariationIds } from "@/lib/square-catalog";
+import { buildSquareCheckoutLineItem } from "@/lib/square-checkout-items";
 import { getSquare } from "@/lib/square";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import { getStripe } from "@/lib/stripe";
@@ -105,64 +107,96 @@ async function createSquareCheckout(input: {
   items: CheckoutItem[];
 }) {
   const square = getSquare();
-  const response = await square.checkout.paymentLinks.create({
-    idempotencyKey: input.cartReference,
-    description: `Your Filter Guys cart ${input.cartReference}`,
-    order: {
-      locationId: squareLocationId,
-      referenceId: input.cartReference,
-      metadata: {
-        cart_reference: input.cartReference,
-        ...(input.customerId ? { customer_id: input.customerId } : {})
-      },
-      lineItems: input.items.map((item) => ({
-        name: item.product.name,
-        variationName: item.variant.name,
-        quantity: String(item.quantity),
-        basePriceMoney: {
-          amount: BigInt(item.variant.priceCents),
-          currency: "USD"
-        },
-        note: item.product.shortDescription,
-        metadata: {
-          product_id: item.product.id,
-          variant_id: item.variant.id,
-          sku: item.variant.sku,
-          product_name: item.product.name,
-          variant_name: item.variant.name
-        }
-      })),
-      taxes: squareTaxPercentage
-        ? [
-            {
-              uid: "configured-sales-tax",
-              name: "Sales tax",
-              percentage: squareTaxPercentage,
-              scope: "ORDER"
-            }
-          ]
-        : undefined
-    },
-    checkoutOptions: {
-      askForShippingAddress: true,
-      redirectUrl: `${siteUrl}/checkout/success?provider=square`,
-      merchantSupportEmail: "filterguys726@gmail.com",
-      allowTipping: false,
-      shippingFee: squareShippingFeeCents
-        ? {
-            name: squareShippingFeeName,
-            charge: {
-              amount: BigInt(squareShippingFeeCents),
-              currency: "USD"
-            }
-          }
-        : undefined
-    },
-    prePopulatedData: input.buyerEmail
-      ? { buyerEmail: input.buyerEmail }
-      : undefined,
-    paymentNote: `Cart reference ${input.cartReference}`
+  const catalogVariationIds = await getSquareCatalogVariationIds(
+    input.items.map((item) => item.variant.id)
+  ).catch((error) => {
+    console.error("Square Catalog mappings could not be loaded", error);
+    return new Map<string, string>();
   });
+  const hasCatalogItems = catalogVariationIds.size > 0;
+
+  const createPaymentLink = async (
+    mappings: Map<string, string>,
+    idempotencyKey: string
+  ) =>
+    square.checkout.paymentLinks.create({
+      idempotencyKey,
+      description: `Your Filter Guys cart ${input.cartReference}`,
+      order: {
+        locationId: squareLocationId,
+        referenceId: input.cartReference,
+        metadata: {
+          cart_reference: input.cartReference,
+          ...(input.customerId ? { customer_id: input.customerId } : {})
+        },
+        lineItems: input.items.map((item) =>
+          buildSquareCheckoutLineItem(
+            {
+              productId: item.product.id,
+              productName: item.product.name,
+              shortDescription: item.product.shortDescription,
+              variantId: item.variant.id,
+              variantName: item.variant.name,
+              sku: item.variant.sku,
+              priceCents: item.variant.priceCents,
+              quantity: item.quantity
+            },
+            mappings.get(item.variant.id)
+          )
+        ),
+        taxes: squareTaxPercentage
+          ? [
+              {
+                uid: "configured-sales-tax",
+                name: "Sales tax",
+                percentage: squareTaxPercentage,
+                scope: "ORDER"
+              }
+            ]
+          : undefined
+      },
+      checkoutOptions: {
+        askForShippingAddress: true,
+        redirectUrl: `${siteUrl}/checkout/success?provider=square`,
+        merchantSupportEmail: "filterguys726@gmail.com",
+        allowTipping: false,
+        shippingFee: squareShippingFeeCents
+          ? {
+              name: squareShippingFeeName,
+              charge: {
+                amount: BigInt(squareShippingFeeCents),
+                currency: "USD"
+              }
+            }
+          : undefined
+      },
+      prePopulatedData: input.buyerEmail
+        ? { buyerEmail: input.buyerEmail }
+        : undefined,
+      paymentNote: `Cart reference ${input.cartReference}`
+    });
+
+  let response;
+
+  try {
+    response = await createPaymentLink(
+      catalogVariationIds,
+      input.cartReference
+    );
+  } catch (error) {
+    if (!hasCatalogItems) {
+      throw error;
+    }
+
+    console.error(
+      "Square catalog-backed checkout failed; retrying with ad-hoc items",
+      error
+    );
+    response = await createPaymentLink(
+      new Map<string, string>(),
+      `${input.cartReference}-adhoc`
+    );
+  }
 
   if (!response.paymentLink?.url) {
     throw new Error("Square did not return a checkout URL.");

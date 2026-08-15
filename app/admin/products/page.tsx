@@ -4,10 +4,21 @@ import { AdminGate } from "@/components/admin-gate";
 import { AdminNav } from "@/components/admin-nav";
 import { getAdminProducts } from "@/lib/admin";
 import { formatMoney } from "@/lib/format";
+import { syncAllSquareProductsAction } from "@/app/admin/products/actions";
+import { AdminErrorAlert } from "@/components/admin-error-alert";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage() {
+export default async function AdminProductsPage({
+  searchParams
+}: {
+  searchParams?: Promise<{
+    error?: string;
+    squareSynced?: string;
+    warning?: string;
+  }>;
+}) {
+  const query = await searchParams;
   const { state, products } = await getAdminProducts();
 
   if (!state.configured || !state.user || !state.isAdmin) {
@@ -26,15 +37,33 @@ export default async function AdminProductsPage() {
                 <AdminNav />
               </div>
             </div>
-            <Link href="/admin/products/new" className="button-primary w-fit">
-              <PackagePlus aria-hidden className="h-4 w-4" />
-              New product
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <form action={syncAllSquareProductsAction}>
+                <button type="submit" className="button-secondary">
+                  Sync active products to Square
+                </button>
+              </form>
+              <Link href="/admin/products/new" className="button-primary w-fit">
+                <PackagePlus aria-hidden className="h-4 w-4" />
+                New product
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <AdminErrorAlert message={query?.error} />
+        {query?.squareSynced ? (
+          <div className="mb-5 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-bay">
+            Synchronized {query.squareSynced} active product(s) with Square.
+          </div>
+        ) : null}
+        {query?.warning ? (
+          <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+            {query.warning}
+          </div>
+        ) : null}
         <div className="surface overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-left text-sm">

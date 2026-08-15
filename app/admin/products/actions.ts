@@ -9,6 +9,10 @@ import {
   createServiceSupabaseClient
 } from "@/lib/supabase";
 import { isMissingFitmentEnabledColumn } from "@/lib/supabase-errors";
+import {
+  syncSquareProduct,
+  syncSquareProductSafely
+} from "@/lib/square-catalog";
 
 const defaultProductImageUrl = "/product-oil-filter.svg";
 
@@ -84,7 +88,13 @@ function normalizeSlug(value: string) {
 }
 
 function errorPath(path: string, error: unknown) {
-  const message =
+  const message = adminActionErrorMessage(error);
+
+  return `${path}?error=${encodeURIComponent(message)}`;
+}
+
+function adminActionErrorMessage(error: unknown) {
+  return (
     error instanceof Error
       ? error.message
       : error &&
@@ -92,9 +102,8 @@ function errorPath(path: string, error: unknown) {
           "message" in error &&
           typeof error.message === "string"
         ? error.message
-        : "The admin action could not be saved.";
-
-  return `${path}?error=${encodeURIComponent(message)}`;
+        : "The admin action could not be saved."
+  );
 }
 
 function revalidateProductAdminPaths(productId?: string, slug?: string) {
@@ -294,6 +303,8 @@ export async function upsertProductAction(formData: FormData) {
       redirect(errorPath(`/admin/products/${productId}`, error));
     }
 
+    await syncSquareProductSafely(productId);
+
     revalidateProductAdminPaths(productId, payload.slug);
     if (existingSlug && existingSlug !== payload.slug) {
       revalidatePath(`/products/${existingSlug}`);
@@ -417,12 +428,70 @@ export async function upsertVariantAction(formData: FormData) {
     redirect(errorPath(`/admin/products/${productId}`, result.error));
   }
 
+  await syncSquareProductSafely(productId);
+
   if (variantId) {
     revalidatePath("/products");
   }
 
   revalidateProductAdminPaths(productId, productSlug);
   redirect(`/admin/products/${productId}`);
+}
+
+export async function syncSquareProductAction(formData: FormData) {
+  await assertAdmin();
+  const productId = textValue(formData, "product_id");
+  let nextPath = `/admin/products/${productId}?squareSynced=1`;
+
+  try {
+    const result = await syncSquareProduct(productId);
+    const warning = result.warning
+      ? `&warning=${encodeURIComponent(result.warning)}`
+      : "";
+    nextPath = `/admin/products/${productId}?squareSynced=1${warning}`;
+  } catch (error) {
+    nextPath = errorPath(`/admin/products/${productId}`, error);
+  }
+
+  revalidateProductAdminPaths(productId);
+  redirect(nextPath);
+}
+
+export async function syncAllSquareProductsAction() {
+  await assertAdmin();
+  const supabase = createServiceSupabaseClient();
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("id")
+    .eq("active", true)
+    .order("name");
+
+  if (error) {
+    redirect(errorPath("/admin/products", error));
+  }
+
+  let syncedCount = 0;
+  const warnings: string[] = [];
+
+  for (const product of products ?? []) {
+    try {
+      const result = await syncSquareProduct(product.id);
+      syncedCount += 1;
+      if (result.warning) {
+        warnings.push(result.warning);
+      }
+    } catch (syncError) {
+      warnings.push(adminActionErrorMessage(syncError));
+    }
+  }
+
+  revalidatePath("/admin/products");
+  const warning = warnings.length
+    ? `&warning=${encodeURIComponent(
+        `${warnings.length} product(s) need attention. ${warnings[0]}`
+      )}`
+    : "";
+  redirect(`/admin/products?squareSynced=${syncedCount}${warning}`);
 }
 
 export async function createFitmentAction(formData: FormData) {
