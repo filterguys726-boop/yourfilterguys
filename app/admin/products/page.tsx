@@ -6,6 +6,7 @@ import { getAdminProducts } from "@/lib/admin";
 import { formatMoney } from "@/lib/format";
 import { syncAllSquareProductsAction } from "@/app/admin/products/actions";
 import { AdminErrorAlert } from "@/components/admin-error-alert";
+import { SquareCatalogSyncButton } from "@/components/square-catalog-sync-button";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +40,9 @@ export default async function AdminProductsPage({
             </div>
             <div className="flex flex-wrap gap-3">
               <form action={syncAllSquareProductsAction}>
-                <button type="submit" className="button-secondary">
-                  Sync active products to Square
-                </button>
+                <SquareCatalogSyncButton
+                  productCount={products.filter((product) => product.active).length}
+                />
               </form>
               <Link href="/admin/products/new" className="button-primary w-fit">
                 <PackagePlus aria-hidden className="h-4 w-4" />
