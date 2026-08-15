@@ -1,3 +1,13 @@
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
 create table if not exists public.square_catalog_products (
   product_id uuid primary key references public.products(id) on delete cascade,
   catalog_item_id text not null unique,
