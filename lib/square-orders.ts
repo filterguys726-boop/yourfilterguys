@@ -158,8 +158,6 @@ export async function processCompletedSquarePayment(
     throw error;
   }
 
-  let addressUpdated = false;
-
   if (existingOrder) {
     const mergedAddress = mergeStoredShippingAddress(
       shippingAddress,
@@ -178,16 +176,13 @@ export async function processCompletedSquarePayment(
         throw updateError;
       }
 
-      addressUpdated = true;
     }
   }
 
-  if (!existingOrder || addressUpdated) {
-    try {
-      await sendOrderCreatedNotifications(supabase, orderId as string);
-    } catch (notificationError) {
-      console.error("Square order notification email failed", notificationError);
-    }
+  try {
+    await sendOrderCreatedNotifications(supabase, orderId as string);
+  } catch (notificationError) {
+    console.error("Square order notification email failed", notificationError);
   }
 
   return orderId as string;

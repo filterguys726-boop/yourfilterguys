@@ -602,7 +602,7 @@ export async function sendOrderEmailAction(formData: FormData) {
   const orderId = textValue(formData, "order_id");
 
   try {
-    await sendOrderCreatedNotifications(supabase, orderId);
+    await sendOrderCreatedNotifications(supabase, orderId, { force: true });
   } catch (error) {
     redirect(orderEmailPath(error));
   }
